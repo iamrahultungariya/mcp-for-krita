@@ -12,6 +12,7 @@ from krita_mcp_lazy.transport.server import AsyncIPCServer
 from plugins.krita_mcp_bridge.dispatcher import KritaMainThreadDispatcher
 from plugins.krita_mcp_bridge.handlers_canvas import register_canvas_handlers
 from plugins.krita_mcp_bridge.handlers_document import register_document_handlers
+from plugins.krita_mcp_bridge.handlers_layers import register_layer_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ class BridgeExtension(Extension):
         self._register_default_handlers()
         register_document_handlers(self.dispatcher)
         register_canvas_handlers(self.dispatcher)
+        register_layer_handlers(self.dispatcher)
         logger.info("krita-MCP-lazy BridgeExtension setup completed")
 
     def createActions(self, window: Any) -> None:
