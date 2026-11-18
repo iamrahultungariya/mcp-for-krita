@@ -13,7 +13,7 @@
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
 - **Active Phase:** **Phase 6: Professional Character Production**
-- **Next Task to Execute:** **Task 13: Character Turnaround & Anatomical Construction Engine (`src/krita_mcp_lazy/character/turnaround.py`)**
+- **Next Task to Execute:** **Task 14: Facial System, Expressions & Visemes Engine (`src/krita_mcp_lazy/character/expressions.py`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -44,7 +44,7 @@
 - [x] **Task 12:** Visual Production Specification Generator (`src/krita_mcp_lazy/art_planning/`)
 
 ### [ ] Phase 6: Professional Character Production (Status: IN PROGRESS)
-- [ ] **Task 13:** Character Turnaround & Anatomical Construction Engine (`src/krita_mcp_lazy/character/turnaround.py`)
+- [x] **Task 13:** Character Turnaround & Anatomical Construction Engine (`src/krita_mcp_lazy/character/turnaround.py`)
 - [ ] **Task 14:** Facial System, Expressions & Visemes Engine (`src/krita_mcp_lazy/character/expressions.py`)
 
 ### [ ] Phase 7: Environment & Prop Production (Status: PENDING)
