@@ -3,6 +3,7 @@
 from typing import Any, Optional
 
 from krita_mcp_lazy.core.config import KritaConfig
+from krita_mcp_lazy.server.tools_animation import register_animation_tools
 from krita_mcp_lazy.server.tools_art_planning import register_art_planning_tools
 from krita_mcp_lazy.server.tools_assets import register_assets_tools
 from krita_mcp_lazy.server.tools_character import register_character_tools
@@ -46,5 +47,7 @@ def create_mcp_server(config: Optional[KritaConfig] = None) -> Any:
     register_assets_tools(server, cfg)
     # Register Visual QA Tools
     register_visual_qa_tools(server, cfg)
+    # Register Animation Tools
+    register_animation_tools(server, cfg)
     
     return server
