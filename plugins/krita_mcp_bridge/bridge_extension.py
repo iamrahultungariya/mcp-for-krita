@@ -10,6 +10,7 @@ from krita_mcp_lazy.core.errors import ErrorCode, KritaError
 from krita_mcp_lazy.core.schemas import JobRequest, JobResponse, JobStatus
 from krita_mcp_lazy.transport.server import AsyncIPCServer
 from plugins.krita_mcp_bridge.dispatcher import KritaMainThreadDispatcher
+from plugins.krita_mcp_bridge.handlers_document import register_document_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ class BridgeExtension(Extension):
         """Called by Krita upon application startup to initialize plugin."""
         self.dispatcher.attach_qtimer(interval_ms=16)
         self._register_default_handlers()
+        register_document_handlers(self.dispatcher)
         logger.info("krita-MCP-lazy BridgeExtension setup completed")
 
     def createActions(self, window: Any) -> None:
