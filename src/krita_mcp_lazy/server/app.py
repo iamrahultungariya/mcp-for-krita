@@ -11,6 +11,7 @@ from krita_mcp_lazy.server.tools_environment import register_environment_tools
 from krita_mcp_lazy.server.tools_layers import register_layer_tools
 from krita_mcp_lazy.server.tools_painting import register_painting_tools
 from krita_mcp_lazy.server.tools_system import register_system_tools
+from krita_mcp_lazy.server.tools_visual_qa import register_visual_qa_tools
 
 # Support both mcp 2.x (MCPServer) and mcp 1.x (FastMCP)
 try:
@@ -43,5 +44,7 @@ def create_mcp_server(config: Optional[KritaConfig] = None) -> Any:
     register_environment_tools(server, cfg)
     # Register Prop Assets Tools
     register_assets_tools(server, cfg)
+    # Register Visual QA Tools
+    register_visual_qa_tools(server, cfg)
     
     return server
