@@ -10,24 +10,25 @@ logger = logging.getLogger(__name__)
 _mock_layer_trees: Dict[str, List[dict]] = {}
 
 
+def _get_doc_layers(doc_id: str) -> List[dict]:
+    if doc_id not in _mock_layer_trees:
+        _mock_layer_trees[doc_id] = [
+            {
+                "id": f"lyr_{uuid.uuid4().hex[:6]}",
+                "name": "Background",
+                "type": "paint",
+                "opacity": 255,
+                "blending_mode": "normal",
+                "visible": True,
+                "locked": False,
+                "children": [],
+            }
+        ]
+    return _mock_layer_trees[doc_id]
+
+
 def register_layer_handlers(dispatcher: Any) -> None:
     """Register all layer-related handlers with the main-thread dispatcher."""
-
-    def _get_doc_layers(doc_id: str) -> List[dict]:
-        if doc_id not in _mock_layer_trees:
-            _mock_layer_trees[doc_id] = [
-                {
-                    "id": f"lyr_{uuid.uuid4().hex[:6]}",
-                    "name": "Background",
-                    "type": "paint",
-                    "opacity": 255,
-                    "blending_mode": "normal",
-                    "visible": True,
-                    "locked": False,
-                    "children": [],
-                }
-            ]
-        return _mock_layer_trees[doc_id]
 
     def handle_layer_tree(params: dict) -> dict:
         doc_id = params.get("doc_id", "default")

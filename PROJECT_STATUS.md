@@ -12,8 +12,8 @@
 ## Current State at a Glance
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
-- **Active Phase:** **Phase 3: Advanced Layer Intelligence**
-- **Next Task to Execute:** **Task 8: Advanced Masking, Clipping & Alpha Inheritance (`src/krita_mcp_lazy/layers/masks.py`)**
+- **Active Phase:** **Phase 4: Native Drawing & Painting Engine**
+- **Next Task to Execute:** **Task 10: Brush Preset Discovery, Inspection & Parameter Configuration (`src/krita_mcp_lazy/painting/brush_service.py`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -31,10 +31,14 @@
 - [x] **Task 5:** Document Engine (CRUD, Save/Open KRA, Color Profile & Bit Depth) (`src/krita_mcp_lazy/document/`)
 - [x] **Task 6:** Canvas Engine (Resize, Crop, Rotation, Bounds & Pixel Sampling) (`src/krita_mcp_lazy/document/canvas.py`)
 
-### [ ] Phase 3: Advanced Layer Intelligence (Status: IN PROGRESS)
+### [x] Phase 3: Advanced Layer Intelligence (Status: COMPLETED)
 - [x] **Task 7:** Layer Hierarchy & Mask Engine (Tree management, groups, opacity, blending) (`src/krita_mcp_lazy/layers/`)
-- [ ] **Task 8:** Advanced Masking, Clipping & Alpha Inheritance (`src/krita_mcp_lazy/layers/masks.py`)
-- [ ] **Task 9:** Semantic Layer Organization & Custom Hierarchies (`src/krita_mcp_lazy/layers/semantic.py`)
+- [x] **Task 8:** Advanced Masking, Clipping & Alpha Inheritance (`src/krita_mcp_lazy/layers/masks.py`)
+- [x] **Task 9:** Semantic Layer Organization & Custom Hierarchies (`src/krita_mcp_lazy/layers/semantic.py`)
+
+### [ ] Phase 4: Native Drawing & Painting Engine (Status: READY TO START)
+- [ ] **Task 10:** Brush Preset Discovery, Inspection & Parameter Configuration (`src/krita_mcp_lazy/painting/brush_service.py`)
+- [ ] **Task 11:** Native Stroke Generation, Pressure Simulation & Vector Path Automation (`src/krita_mcp_lazy/painting/stroke_engine.py`)
 
 ### [ ] Phase 4: Native Drawing & Painting Engine (Status: PENDING)
 - [ ] **Task 10:** Brush Preset Discovery, Inspection & Parameter Configuration (`src/krita_mcp_lazy/painting/brush_service.py`)
