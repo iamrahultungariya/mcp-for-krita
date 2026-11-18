@@ -12,8 +12,8 @@
 ## Current State at a Glance
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
-- **Active Phase:** **Phase 7: Environment & Prop Production**
-- **Next Task to Execute:** **Task 16: Modular Prop Generator & Material Shading Engine (`src/krita_mcp_lazy/assets/`)**
+- **Active Phase:** **Phase 8: Visual Intelligence & Quality Control**
+- **Next Task to Execute:** **Task 17: Canvas Preview Capture & Visual Region Extraction (`src/krita_mcp_lazy/visual_qa/capture.py`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -47,11 +47,11 @@
 - [x] **Task 13:** Character Turnaround & Anatomical Construction Engine (`src/krita_mcp_lazy/character/turnaround.py`)
 - [x] **Task 14:** Facial System, Expressions & Visemes Engine (`src/krita_mcp_lazy/character/expressions.py`)
 
-### [ ] Phase 7: Environment & Prop Production (Status: IN PROGRESS)
+### [x] Phase 7: Environment & Prop Production (Status: COMPLETED)
 - [x] **Task 15:** Perspective Grids & Multi-Plane Environment Engine (`src/krita_mcp_lazy/environment/`)
-- [ ] **Task 16:** Modular Prop Generator & Material Shading Engine (`src/krita_mcp_lazy/assets/`)
+- [x] **Task 16:** Modular Prop Generator & Material Shading Engine (`src/krita_mcp_lazy/assets/`)
 
-### [ ] Phase 8: Visual Intelligence & Quality Control (Status: PENDING)
+### [ ] Phase 8: Visual Intelligence & Quality Control (Status: IN PROGRESS)
 - [ ] **Task 17:** Canvas Preview Capture & Visual Region Extraction (`src/krita_mcp_lazy/visual_qa/capture.py`)
 - [ ] **Task 18:** Quality Control Scorecard Evaluator & Surgical Rollback Engine (`src/krita_mcp_lazy/visual_qa/scorecard.py`)
 

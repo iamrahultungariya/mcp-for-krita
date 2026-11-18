@@ -10,6 +10,7 @@ from krita_mcp_lazy.core.errors import ErrorCode, KritaError
 from krita_mcp_lazy.core.schemas import JobRequest, JobResponse, JobStatus
 from krita_mcp_lazy.transport.server import AsyncIPCServer
 from plugins.krita_mcp_bridge.dispatcher import KritaMainThreadDispatcher
+from plugins.krita_mcp_bridge.handlers_assets import register_asset_handlers
 from plugins.krita_mcp_bridge.handlers_canvas import register_canvas_handlers
 from plugins.krita_mcp_bridge.handlers_character import register_character_handlers
 from plugins.krita_mcp_bridge.handlers_document import register_document_handlers
@@ -71,6 +72,7 @@ class BridgeExtension(Extension):
         register_stroke_handlers(self.dispatcher)
         register_character_handlers(self.dispatcher)
         register_environment_handlers(self.dispatcher)
+        register_asset_handlers(self.dispatcher)
         logger.info("krita-MCP-lazy BridgeExtension setup completed")
 
     def createActions(self, window: Any) -> None:

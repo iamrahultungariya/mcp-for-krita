@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 from krita_mcp_lazy.core.config import KritaConfig
 from krita_mcp_lazy.server.tools_art_planning import register_art_planning_tools
+from krita_mcp_lazy.server.tools_assets import register_assets_tools
 from krita_mcp_lazy.server.tools_character import register_character_tools
 from krita_mcp_lazy.server.tools_document import register_document_tools
 from krita_mcp_lazy.server.tools_environment import register_environment_tools
@@ -40,5 +41,7 @@ def create_mcp_server(config: Optional[KritaConfig] = None) -> Any:
     register_character_tools(server, cfg)
     # Register Environment Tools
     register_environment_tools(server, cfg)
+    # Register Prop Assets Tools
+    register_assets_tools(server, cfg)
     
     return server
