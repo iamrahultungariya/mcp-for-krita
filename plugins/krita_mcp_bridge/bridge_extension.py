@@ -21,6 +21,7 @@ from plugins.krita_mcp_bridge.handlers_masks import register_mask_handlers
 from plugins.krita_mcp_bridge.handlers_painting import register_painting_handlers
 from plugins.krita_mcp_bridge.handlers_semantic import register_semantic_handlers
 from plugins.krita_mcp_bridge.handlers_strokes import register_stroke_handlers
+from plugins.krita_mcp_bridge.handlers_tahoma2d import register_tahoma2d_handlers
 from plugins.krita_mcp_bridge.handlers_visual_qa import register_visual_qa_handlers
 
 logger = logging.getLogger(__name__)
@@ -77,6 +78,7 @@ class BridgeExtension(Extension):
         register_asset_handlers(self.dispatcher)
         register_visual_qa_handlers(self.dispatcher)
         register_animation_handlers(self.dispatcher)
+        register_tahoma2d_handlers(self.dispatcher)
         logger.info("krita-MCP-lazy BridgeExtension setup completed")
 
     def createActions(self, window: Any) -> None:

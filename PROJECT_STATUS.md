@@ -13,7 +13,7 @@
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
 - **Active Phase:** **Phase 10: Tahoma2D Interoperability**
-- **Next Task to Execute:** **Task 21: Multi-Layer Asset Packaging & Pivot Metadata Exporter (`src/krita_mcp_lazy/interop_tahoma2d/packager.py`)**
+- **Next Task to Execute:** **Task 22: Tahoma2D Scene Project Generator & Round-Trip Validator (`src/krita_mcp_lazy/interop_tahoma2d/scene_builder.py`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -60,7 +60,7 @@
 - [x] **Task 20:** Frame Sequence Export & Validation Engine (`src/krita_mcp_lazy/animation/exporter.py`)
 
 ### [ ] Phase 10: Tahoma2D Interoperability (Status: IN PROGRESS)
-- [ ] **Task 21:** Multi-Layer Asset Packaging & Pivot Metadata Exporter (`src/krita_mcp_lazy/interop_tahoma2d/packager.py`)
+- [x] **Task 21:** Multi-Layer Asset Packaging & Pivot Metadata Exporter (`src/krita_mcp_lazy/interop_tahoma2d/packager.py`)
 - [ ] **Task 22:** Tahoma2D Scene Project Generator & Round-Trip Validator (`src/krita_mcp_lazy/interop_tahoma2d/scene_builder.py`)
 
 ### [ ] Phase 11: Telemetry & Performance Monitoring (Status: PENDING)
