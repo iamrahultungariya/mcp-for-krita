@@ -13,7 +13,7 @@
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
 - **Active Phase:** **Phase 4: Native Drawing & Painting Engine**
-- **Next Task to Execute:** **Task 10: Brush Preset Discovery, Inspection & Parameter Configuration (`src/krita_mcp_lazy/painting/brush_service.py`)**
+- **Next Task to Execute:** **Task 11: Native Stroke Generation, Pressure Simulation & Vector Path Automation (`src/krita_mcp_lazy/painting/stroke_engine.py`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -36,8 +36,8 @@
 - [x] **Task 8:** Advanced Masking, Clipping & Alpha Inheritance (`src/krita_mcp_lazy/layers/masks.py`)
 - [x] **Task 9:** Semantic Layer Organization & Custom Hierarchies (`src/krita_mcp_lazy/layers/semantic.py`)
 
-### [ ] Phase 4: Native Drawing & Painting Engine (Status: READY TO START)
-- [ ] **Task 10:** Brush Preset Discovery, Inspection & Parameter Configuration (`src/krita_mcp_lazy/painting/brush_service.py`)
+### [ ] Phase 4: Native Drawing & Painting Engine (Status: IN PROGRESS)
+- [x] **Task 10:** Brush Preset Discovery, Inspection & Parameter Configuration (`src/krita_mcp_lazy/painting/brush_service.py`)
 - [ ] **Task 11:** Native Stroke Generation, Pressure Simulation & Vector Path Automation (`src/krita_mcp_lazy/painting/stroke_engine.py`)
 
 ### [ ] Phase 4: Native Drawing & Painting Engine (Status: PENDING)
