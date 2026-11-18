@@ -1,5 +1,6 @@
-"""Document intelligence and lifecycle management for krita-MCP-lazy."""
+"""Document and canvas intelligence and lifecycle management for krita-MCP-lazy."""
 
+from krita_mcp_lazy.document.canvas import CanvasService
 from krita_mcp_lazy.document.models import (
     BitDepth,
     ColorModel,
@@ -14,4 +15,5 @@ __all__ = [
     "DocumentInfo",
     "DocumentSpec",
     "DocumentService",
+    "CanvasService",
 ]

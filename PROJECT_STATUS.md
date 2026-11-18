@@ -12,8 +12,8 @@
 ## Current State at a Glance
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
-- **Active Phase:** **Phase 2: Document & Canvas Intelligence**
-- **Next Task to Execute:** **Task 6: Canvas Engine (Resize, Crop, Rotation, Bounds & Pixel Sampling) (`src/krita_mcp_lazy/document/canvas.py`)**
+- **Active Phase:** **Phase 3: Advanced Layer Intelligence**
+- **Next Task to Execute:** **Task 7: Layer Hierarchy & Mask Engine (Tree management, groups, opacity, blending) (`src/krita_mcp_lazy/layers/`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -27,11 +27,11 @@
 - [x] **Task 3:** Native Krita Python Extension Plugin & Main-Thread Queue Dispatcher (`plugins/krita_mcp_bridge/`)
 - [x] **Task 4:** FastMCP Server Integration & Core Tool Registration (`src/krita_mcp_lazy/server/`)
 
-### [ ] Phase 2: Document & Canvas Intelligence (Status: IN PROGRESS)
+### [x] Phase 2: Document & Canvas Intelligence (Status: COMPLETED)
 - [x] **Task 5:** Document Engine (CRUD, Save/Open KRA, Color Profile & Bit Depth) (`src/krita_mcp_lazy/document/`)
-- [ ] **Task 6:** Canvas Engine (Resize, Crop, Rotation, Bounds & Pixel Sampling) (`src/krita_mcp_lazy/document/canvas.py`)
+- [x] **Task 6:** Canvas Engine (Resize, Crop, Rotation, Bounds & Pixel Sampling) (`src/krita_mcp_lazy/document/canvas.py`)
 
-### [ ] Phase 3: Advanced Layer Intelligence (Status: PENDING)
+### [ ] Phase 3: Advanced Layer Intelligence (Status: READY TO START)
 - [ ] **Task 7:** Layer Hierarchy & Mask Engine (Tree management, groups, opacity, blending) (`src/krita_mcp_lazy/layers/`)
 - [ ] **Task 8:** Advanced Masking, Clipping & Alpha Inheritance (`src/krita_mcp_lazy/layers/masks.py`)
 - [ ] **Task 9:** Semantic Layer Organization & Custom Hierarchies (`src/krita_mcp_lazy/layers/semantic.py`)

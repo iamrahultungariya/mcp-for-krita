@@ -1,13 +1,15 @@
-"""MCP tools for Krita document management."""
+"""MCP tools for Krita document and canvas management."""
 
 from typing import Any, List, Optional
 
 from krita_mcp_lazy.core.config import KritaConfig
+from krita_mcp_lazy.document.canvas import CanvasService
 from krita_mcp_lazy.document.models import BitDepth, ColorModel, DocumentSpec
 from krita_mcp_lazy.document.service import DocumentService
 from krita_mcp_lazy.transport.client import AsyncIPCClient
 
 _doc_service: Optional[DocumentService] = None
+_canvas_service: Optional[CanvasService] = None
 
 
 def get_document_service(config: Optional[KritaConfig] = None) -> DocumentService:
@@ -20,8 +22,18 @@ def get_document_service(config: Optional[KritaConfig] = None) -> DocumentServic
     return _doc_service
 
 
+def get_canvas_service(config: Optional[KritaConfig] = None) -> CanvasService:
+    """Retrieve or initialize singleton CanvasService instance."""
+    global _canvas_service
+    if _canvas_service is None:
+        cfg = config or KritaConfig()
+        client = AsyncIPCClient(host=cfg.host, port=cfg.port, token=cfg.token)
+        _canvas_service = CanvasService(client=client)
+    return _canvas_service
+
+
 def register_document_tools(server: Any, config: Optional[KritaConfig] = None) -> None:
-    """Register all document CRUD and inspection tools on the MCP server."""
+    """Register all document CRUD, inspection, and canvas geometric tools on the MCP server."""
     cfg = config or KritaConfig()
 
     @server.tool(
@@ -92,3 +104,68 @@ def register_document_tools(server: Any, config: Optional[KritaConfig] = None) -
     async def _tool_list_documents() -> List[dict[str, Any]]:
         svc = get_document_service(cfg)
         return await svc.list_documents()
+
+    # --- Canvas Operations ---
+
+    @server.tool(
+        name="krita_resize_canvas",
+        description="Resize canvas dimensions with optional x/y offset anchors",
+    )
+    async def _tool_resize_canvas(
+        doc_id: str,
+        width: int,
+        height: int,
+        x_offset: int = 0,
+        y_offset: int = 0,
+    ) -> dict[str, Any]:
+        canvas_svc = get_canvas_service(cfg)
+        return await canvas_svc.resize_canvas(
+            doc_id=doc_id,
+            width=width,
+            height=height,
+            x_offset=x_offset,
+            y_offset=y_offset,
+        )
+
+    @server.tool(
+        name="krita_crop_canvas",
+        description="Crop the canvas to a rectangular bounding box (x, y, width, height)",
+    )
+    async def _tool_crop_canvas(
+        doc_id: str,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+    ) -> dict[str, Any]:
+        canvas_svc = get_canvas_service(cfg)
+        return await canvas_svc.crop_canvas(doc_id=doc_id, x=x, y=y, width=width, height=height)
+
+    @server.tool(
+        name="krita_rotate_canvas",
+        description="Rotate the entire canvas image by a specified angle in degrees",
+    )
+    async def _tool_rotate_canvas(doc_id: str, angle_degrees: float) -> dict[str, Any]:
+        canvas_svc = get_canvas_service(cfg)
+        return await canvas_svc.rotate_canvas(doc_id=doc_id, angle_degrees=angle_degrees)
+
+    @server.tool(
+        name="krita_get_canvas_bounds",
+        description="Retrieve the current pixel bounds, dimensions, and resolution of the active or specified canvas",
+    )
+    async def _tool_get_canvas_bounds(doc_id: Optional[str] = None) -> dict[str, Any]:
+        canvas_svc = get_canvas_service(cfg)
+        return await canvas_svc.get_canvas_bounds(doc_id=doc_id)
+
+    @server.tool(
+        name="krita_sample_pixel",
+        description="Sample exact RGBA color values at (x, y) coordinates from the canvas or specific layer",
+    )
+    async def _tool_sample_pixel(
+        doc_id: str,
+        x: int,
+        y: int,
+        layer_name: Optional[str] = None,
+    ) -> dict[str, Any]:
+        canvas_svc = get_canvas_service(cfg)
+        return await canvas_svc.sample_pixel(doc_id=doc_id, x=x, y=y, layer_name=layer_name)
