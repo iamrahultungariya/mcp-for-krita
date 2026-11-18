@@ -3,6 +3,7 @@
 from typing import Any, Optional
 
 from krita_mcp_lazy.core.config import KritaConfig
+from krita_mcp_lazy.server.tools_art_planning import register_art_planning_tools
 from krita_mcp_lazy.server.tools_document import register_document_tools
 from krita_mcp_lazy.server.tools_layers import register_layer_tools
 from krita_mcp_lazy.server.tools_painting import register_painting_tools
@@ -31,5 +32,7 @@ def create_mcp_server(config: Optional[KritaConfig] = None) -> Any:
     register_layer_tools(server, cfg)
     # Register Painting Tools
     register_painting_tools(server, cfg)
+    # Register Art Planning Tools
+    register_art_planning_tools(server, cfg)
     
     return server
