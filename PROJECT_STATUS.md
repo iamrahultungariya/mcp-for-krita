@@ -12,8 +12,8 @@
 ## Current State at a Glance
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
-- **Active Phase:** **Phase 9: Animation & Frame Production**
-- **Next Task to Execute:** **Task 20: Frame Sequence Export & Validation Engine (`src/krita_mcp_lazy/animation/exporter.py`)**
+- **Active Phase:** **Phase 10: Tahoma2D Interoperability**
+- **Next Task to Execute:** **Task 21: Multi-Layer Asset Packaging & Pivot Metadata Exporter (`src/krita_mcp_lazy/interop_tahoma2d/packager.py`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -55,11 +55,11 @@
 - [x] **Task 17:** Canvas Preview Capture & Visual Region Extraction (`src/krita_mcp_lazy/visual_qa/capture.py`)
 - [x] **Task 18:** Quality Control Scorecard Evaluator & Surgical Rollback Engine (`src/krita_mcp_lazy/visual_qa/scorecard.py`)
 
-### [ ] Phase 9: Animation & Frame Production (Status: IN PROGRESS)
+### [x] Phase 9: Animation & Frame Production (Status: COMPLETED)
 - [x] **Task 19:** Raster Keyframe & Timing Engine with Memory Cache Guard (`src/krita_mcp_lazy/animation/keyframe_service.py`)
-- [ ] **Task 20:** Frame Sequence Export & Validation Engine (`src/krita_mcp_lazy/animation/exporter.py`)
+- [x] **Task 20:** Frame Sequence Export & Validation Engine (`src/krita_mcp_lazy/animation/exporter.py`)
 
-### [ ] Phase 10: Tahoma2D Interoperability (Status: PENDING)
+### [ ] Phase 10: Tahoma2D Interoperability (Status: IN PROGRESS)
 - [ ] **Task 21:** Multi-Layer Asset Packaging & Pivot Metadata Exporter (`src/krita_mcp_lazy/interop_tahoma2d/packager.py`)
 - [ ] **Task 22:** Tahoma2D Scene Project Generator & Round-Trip Validator (`src/krita_mcp_lazy/interop_tahoma2d/scene_builder.py`)
 

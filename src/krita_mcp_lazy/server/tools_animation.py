@@ -1,13 +1,15 @@
-"""MCP tools for raster keyframing, timeline configuration, and onion skinning."""
+"""MCP tools for raster keyframing, timeline configuration, onion skinning, and frame sequence export."""
 
 from typing import Any, Dict, Optional
 
+from krita_mcp_lazy.animation.exporter import SequenceExporter
 from krita_mcp_lazy.animation.keyframe_service import KeyframeService
 from krita_mcp_lazy.animation.models import KeyframeType, OnionSkinConfig
 from krita_mcp_lazy.core.config import KritaConfig
 from krita_mcp_lazy.transport.client import AsyncIPCClient
 
 _keyframe_service: Optional[KeyframeService] = None
+_sequence_exporter: Optional[SequenceExporter] = None
 
 
 def get_keyframe_service(config: Optional[KritaConfig] = None) -> KeyframeService:
@@ -20,8 +22,18 @@ def get_keyframe_service(config: Optional[KritaConfig] = None) -> KeyframeServic
     return _keyframe_service
 
 
+def get_sequence_exporter(config: Optional[KritaConfig] = None) -> SequenceExporter:
+    """Retrieve or initialize singleton SequenceExporter."""
+    global _sequence_exporter
+    if _sequence_exporter is None:
+        cfg = config or KritaConfig()
+        client = AsyncIPCClient(host=cfg.host, port=cfg.port, token=cfg.token)
+        _sequence_exporter = SequenceExporter(client=client)
+    return _sequence_exporter
+
+
 def register_animation_tools(server: Any, config: Optional[KritaConfig] = None) -> None:
-    """Register all animation, keyframing, and timeline tools on the MCP server."""
+    """Register all animation, keyframing, timeline, and sequence export tools on the MCP server."""
     cfg = config or KritaConfig()
 
     @server.tool(
@@ -88,4 +100,46 @@ def register_animation_tools(server: Any, config: Optional[KritaConfig] = None) 
             doc_id=doc_id,
             fps=fps,
             total_frames=total_frames,
+        )
+
+    @server.tool(
+        name="krita_export_frame_sequence",
+        description="Render and export an animation frame sequence to numbered PNG image files on disk",
+    )
+    async def _tool_export_frame_sequence(
+        doc_id: str,
+        start_frame: int,
+        end_frame: int,
+        output_dir: str,
+        prefix: str = "frame_",
+        file_format: str = "PNG",
+    ) -> Dict[str, Any]:
+        exporter = get_sequence_exporter(cfg)
+        return await exporter.export_sequence(
+            doc_id=doc_id,
+            start_frame=start_frame,
+            end_frame=end_frame,
+            output_dir=output_dir,
+            prefix=prefix,
+            file_format=file_format,
+        )
+
+    @server.tool(
+        name="krita_validate_frame_sequence",
+        description="Audit an exported frame sequence directory to detect missing frame numbers or 0-byte corrupt files",
+    )
+    async def _tool_validate_frame_sequence(
+        output_dir: str,
+        start_frame: int,
+        end_frame: int,
+        prefix: str = "frame_",
+        extension: str = "png",
+    ) -> Dict[str, Any]:
+        exporter = get_sequence_exporter(cfg)
+        return exporter.validate_sequence(
+            output_dir=output_dir,
+            start_frame=start_frame,
+            end_frame=end_frame,
+            prefix=prefix,
+            extension=extension,
         )
