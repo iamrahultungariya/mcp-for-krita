@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=krita_mcp_bridge
+X-Python-2-Compatible=false
+X-Krita-Manual=README.md
+Name=Krita MCP Bridge
+Comment=Native Python extension connecting Krita to the krita-MCP-lazy art engine over authenticated loopback IPC
