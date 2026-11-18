@@ -12,8 +12,8 @@
 ## Current State at a Glance
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
-- **Active Phase:** **Phase 1: Foundation & Application Communication**
-- **Next Task to Execute:** **Task 4: FastMCP Server Integration & Core Tool Registration (`src/krita_mcp_lazy/server/`)**
+- **Active Phase:** **Phase 2: Document & Canvas Intelligence**
+- **Next Task to Execute:** **Task 5: Document Engine (CRUD, Save/Open KRA, Color Profile & Bit Depth) (`src/krita_mcp_lazy/document/`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -21,14 +21,13 @@
 
 ## Phase & Task Progress Tracker
 
-### [ ] Phase 1: Foundation & Application Communication (Status: IN PROGRESS)
+### [x] Phase 1: Foundation & Application Communication (Status: COMPLETED)
 - [x] **Task 1:** Core Configuration, Schemas, Security & Error Types (`src/krita_mcp_lazy/core/`)
 - [x] **Task 2:** Authenticated Loopback IPC Transport (`src/krita_mcp_lazy/transport/`)
 - [x] **Task 3:** Native Krita Python Extension Plugin & Main-Thread Queue Dispatcher (`plugins/krita_mcp_bridge/`)
-- [ ] **Task 4:** FastMCP Server Integration & Core Tool Registration (`src/krita_mcp_lazy/server/`)
-- [ ] **Task 4:** FastMCP Server Integration & Core Tool Registration (`src/krita_mcp_lazy/server/`)
+- [x] **Task 4:** FastMCP Server Integration & Core Tool Registration (`src/krita_mcp_lazy/server/`)
 
-### [ ] Phase 2: Document & Canvas Intelligence (Status: PENDING)
+### [ ] Phase 2: Document & Canvas Intelligence (Status: READY TO START)
 - [ ] **Task 5:** Document Engine (CRUD, Save/Open KRA, Color Profile & Bit Depth) (`src/krita_mcp_lazy/document/`)
 - [ ] **Task 6:** Canvas Engine (Resize, Crop, Rotation, Bounds & Pixel Sampling) (`src/krita_mcp_lazy/document/canvas.py`)
 
