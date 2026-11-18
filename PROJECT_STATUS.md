@@ -12,8 +12,8 @@
 ## Current State at a Glance
 
 - **Project Name:** `krita-MCP-lazy` (ToonFlow Art Engine)
-- **Active Phase:** **Phase 8: Visual Intelligence & Quality Control**
-- **Next Task to Execute:** **Task 18: Quality Control Scorecard Evaluator & Surgical Rollback Engine (`src/krita_mcp_lazy/visual_qa/scorecard.py`, `rollback.py`)**
+- **Active Phase:** **Phase 9: Animation & Frame Production**
+- **Next Task to Execute:** **Task 19: Raster Keyframe & Timing Engine with Memory Cache Guard (`src/krita_mcp_lazy/animation/keyframe_service.py`)**
 - **Architecture Spec:** [`docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md`](docs/superpowers/specs/2026-11-18-krita-mcp-lazy-spec.md)
 - **Implementation Plan:** [`docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md`](docs/superpowers/plans/2026-11-18-krita-mcp-lazy.md)
 
@@ -51,11 +51,11 @@
 - [x] **Task 15:** Perspective Grids & Multi-Plane Environment Engine (`src/krita_mcp_lazy/environment/`)
 - [x] **Task 16:** Modular Prop Generator & Material Shading Engine (`src/krita_mcp_lazy/assets/`)
 
-### [ ] Phase 8: Visual Intelligence & Quality Control (Status: IN PROGRESS)
+### [x] Phase 8: Visual Intelligence & Quality Control (Status: COMPLETED)
 - [x] **Task 17:** Canvas Preview Capture & Visual Region Extraction (`src/krita_mcp_lazy/visual_qa/capture.py`)
-- [ ] **Task 18:** Quality Control Scorecard Evaluator & Surgical Rollback Engine (`src/krita_mcp_lazy/visual_qa/scorecard.py`)
+- [x] **Task 18:** Quality Control Scorecard Evaluator & Surgical Rollback Engine (`src/krita_mcp_lazy/visual_qa/scorecard.py`)
 
-### [ ] Phase 9: Animation & Frame Production (Status: PENDING)
+### [ ] Phase 9: Animation & Frame Production (Status: IN PROGRESS)
 - [ ] **Task 19:** Raster Keyframe & Timing Engine with Memory Cache Guard (`src/krita_mcp_lazy/animation/keyframe_service.py`)
 - [ ] **Task 20:** Frame Sequence Export & Validation Engine (`src/krita_mcp_lazy/animation/exporter.py`)
 

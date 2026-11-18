@@ -1,12 +1,16 @@
-"""MCP tools for visual quality control, canvas preview capture, and regional inspection."""
+"""MCP tools for visual quality control, canvas preview capture, regional inspection, scorecard evaluations, and checkpoints."""
 
 from typing import Any, Dict, Optional
 
 from krita_mcp_lazy.core.config import KritaConfig
 from krita_mcp_lazy.transport.client import AsyncIPCClient
 from krita_mcp_lazy.visual_qa.capture import VisualCaptureService
+from krita_mcp_lazy.visual_qa.rollback import CheckpointManager
+from krita_mcp_lazy.visual_qa.scorecard import QualityCriteria, ScorecardEvaluator
 
 _capture_service: Optional[VisualCaptureService] = None
+_checkpoint_mgr: Optional[CheckpointManager] = None
+_scorecard_evaluator: Optional[ScorecardEvaluator] = None
 
 
 def get_capture_service(config: Optional[KritaConfig] = None) -> VisualCaptureService:
@@ -19,8 +23,26 @@ def get_capture_service(config: Optional[KritaConfig] = None) -> VisualCaptureSe
     return _capture_service
 
 
+def get_checkpoint_manager(config: Optional[KritaConfig] = None) -> CheckpointManager:
+    """Retrieve or initialize singleton CheckpointManager."""
+    global _checkpoint_mgr
+    if _checkpoint_mgr is None:
+        cfg = config or KritaConfig()
+        client = AsyncIPCClient(host=cfg.host, port=cfg.port, token=cfg.token)
+        _checkpoint_mgr = CheckpointManager(client=client)
+    return _checkpoint_mgr
+
+
+def get_scorecard_evaluator() -> ScorecardEvaluator:
+    """Retrieve singleton ScorecardEvaluator."""
+    global _scorecard_evaluator
+    if _scorecard_evaluator is None:
+        _scorecard_evaluator = ScorecardEvaluator()
+    return _scorecard_evaluator
+
+
 def register_visual_qa_tools(server: Any, config: Optional[KritaConfig] = None) -> None:
-    """Register all visual capture and inspection tools on the MCP server."""
+    """Register all visual capture, quality evaluation, and checkpoint tools on the MCP server."""
     cfg = config or KritaConfig()
 
     @server.tool(
@@ -62,3 +84,47 @@ def register_visual_qa_tools(server: Any, config: Optional[KritaConfig] = None) 
             layer_id=layer_id,
             format=format,
         )
+
+    @server.tool(
+        name="krita_evaluate_visual_quality",
+        description="Evaluate artwork across the 8 professional studio pillars (anatomy, lines, composition, lighting, color, reference, detail, layers) against 85/100 gate",
+    )
+    async def _tool_evaluate_visual_quality(
+        anatomy_proportions: float,
+        line_quality: float,
+        composition_perspective: float,
+        lighting_shading: float,
+        color_materials: float,
+        reference_fidelity: float,
+        detail_finish: float,
+        layer_editability: float,
+        threshold: float = 85.0,
+    ) -> Dict[str, Any]:
+        evaluator = get_scorecard_evaluator()
+        criteria = QualityCriteria(
+            anatomy_proportions=anatomy_proportions,
+            line_quality=line_quality,
+            composition_perspective=composition_perspective,
+            lighting_shading=lighting_shading,
+            color_materials=color_materials,
+            reference_fidelity=reference_fidelity,
+            detail_finish=detail_finish,
+            layer_editability=layer_editability,
+        )
+        return evaluator.evaluate(criteria=criteria, threshold=threshold)
+
+    @server.tool(
+        name="krita_create_checkpoint",
+        description="Create a named checkpoint snapshot before destructive paint or layer modifications",
+    )
+    async def _tool_create_checkpoint(doc_id: str, label: str) -> Dict[str, Any]:
+        mgr = get_checkpoint_manager(cfg)
+        return await mgr.create_checkpoint(doc_id=doc_id, label=label)
+
+    @server.tool(
+        name="krita_rollback_checkpoint",
+        description="Roll back the canvas state to a previously saved checkpoint snapshot upon visual QA rejection",
+    )
+    async def _tool_rollback_checkpoint(doc_id: str, checkpoint_id: str) -> Dict[str, Any]:
+        mgr = get_checkpoint_manager(cfg)
+        return await mgr.rollback_checkpoint(doc_id=doc_id, checkpoint_id=checkpoint_id)
