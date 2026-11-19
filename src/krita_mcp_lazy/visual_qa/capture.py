@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, Optional
 
-from krita_mcp_lazy.core.errors import ErrorCode, KritaError
+from krita_mcp_lazy.core.errors import ErrorCode, KritaError, check_job_response
 from krita_mcp_lazy.transport.client import AsyncIPCClient
 
 
@@ -26,16 +26,7 @@ class VisualCaptureService:
         }
 
         resp = await self.client.send_job("visual.capture_canvas", payload)
-        if resp.status == "error":
-            err_dict = resp.error or {}
-            err_code = err_dict.get("code", "DOCUMENT_ERROR")
-            try:
-                code_enum = ErrorCode(err_code)
-            except ValueError:
-                code_enum = ErrorCode.DOCUMENT_ERROR
-            raise KritaError(code_enum, err_dict.get("message", "Canvas capture failed"))
-
-        return resp.result or {}
+        return check_job_response(resp, ErrorCode.DOCUMENT_ERROR, "Canvas capture failed")
 
     async def extract_region(
         self,
@@ -59,13 +50,4 @@ class VisualCaptureService:
         }
 
         resp = await self.client.send_job("visual.extract_region", payload)
-        if resp.status == "error":
-            err_dict = resp.error or {}
-            err_code = err_dict.get("code", "DOCUMENT_ERROR")
-            try:
-                code_enum = ErrorCode(err_code)
-            except ValueError:
-                code_enum = ErrorCode.DOCUMENT_ERROR
-            raise KritaError(code_enum, err_dict.get("message", "Region extraction failed"))
-
-        return resp.result or {}
+        return check_job_response(resp, ErrorCode.DOCUMENT_ERROR, "Region extraction failed")

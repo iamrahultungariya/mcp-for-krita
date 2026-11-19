@@ -64,12 +64,12 @@ def register_layer_handlers(dispatcher: Any) -> None:
     def handle_create_layer(params: dict) -> dict:
         doc_id = params.get("doc_id", "default")
         name = params.get("name", "New Layer")
-        layer_type = params.get("type", "paint")
+        layer_type = params.get("layer_type") or params.get("type", "paint")
         opacity = params.get("opacity", 255)
         blending_mode = params.get("blending_mode", "normal")
         visible = params.get("visible", True)
         locked = params.get("locked", False)
-        parent_group = params.get("parent_group")
+        parent_group = params.get("parent_group") or params.get("parent_id")
 
         try:
             from krita import Krita
@@ -77,7 +77,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             if app:
                 doc = get_document_by_id(doc_id)
                 if doc:
-                    if layer_type == "group":
+                    if layer_type in ("group", "groupLayer"):
                         node = doc.createGroupLayer(name)
                     else:
                         node = doc.createNode(name, "paintLayer")
@@ -100,8 +100,8 @@ def register_layer_handlers(dispatcher: Any) -> None:
                         "type": layer_type,
                         "created": True,
                     }
-        except ImportError:
-            pass
+        except Exception as le:
+            logger.warning("Failed to create layer in Krita: %s", le)
 
         # Headless mock mode
         layers = _get_doc_layers(doc_id)

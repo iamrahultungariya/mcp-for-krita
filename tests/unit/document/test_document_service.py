@@ -134,6 +134,46 @@ def test_document_spec_bounds_validation():
         DocumentSpec(width=20000, height=1080)
 
 
+def test_document_registry_routing():
+    from plugins.krita_mcp_bridge.dispatcher import KritaMainThreadDispatcher
+    from plugins.krita_mcp_bridge.handlers_document import register_document_handlers, get_document_by_id, _mock_documents
+
+    dispatcher = KritaMainThreadDispatcher(max_queue_size=10)
+    register_document_handlers(dispatcher)
+
+    # Create two documents in mock mode
+    req1 = JobRequest(action="document.create", params={"name": "Doc1", "width": 800, "height": 600})
+    req2 = JobRequest(action="document.create", params={"name": "Doc2", "width": 1200, "height": 900})
+    dispatcher.enqueue(req1)
+    dispatcher.enqueue(req2)
+    dispatcher.process_pending_jobs()
+
+    res1 = dispatcher.get_result(req1.job_id).result
+    res2 = dispatcher.get_result(req2.job_id).result
+
+    doc1_id = res1["doc_id"]
+    doc2_id = res2["doc_id"]
+
+    assert doc1_id != doc2_id
+    assert _mock_documents[doc1_id]["width"] == 800
+    assert _mock_documents[doc2_id]["width"] == 1200
+
+    # Inspect doc 1 specifically
+    req_inspect = JobRequest(action="document.inspect", params={"doc_id": doc1_id})
+    dispatcher.enqueue(req_inspect)
+    dispatcher.process_pending_jobs()
+    inspect_res = dispatcher.get_result(req_inspect.job_id).result
+    assert inspect_res["name"] == "Doc1"
+    assert inspect_res["width"] == 800
+
+    # Close doc 1, doc 2 should remain
+    req_close = JobRequest(action="document.close", params={"doc_id": doc1_id})
+    dispatcher.enqueue(req_close)
+    dispatcher.process_pending_jobs()
+    assert doc1_id not in _mock_documents
+    assert doc2_id in _mock_documents
+
+
 @pytest.mark.asyncio
 async def test_mcp_document_tools_registered():
     server = create_mcp_server()

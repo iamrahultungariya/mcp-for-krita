@@ -4,7 +4,7 @@ import math
 from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
-from krita_mcp_lazy.core.errors import ErrorCode, KritaError
+from krita_mcp_lazy.core.errors import ErrorCode, KritaError, check_job_response
 from krita_mcp_lazy.transport.client import AsyncIPCClient
 
 
@@ -50,16 +50,7 @@ class StrokeEngine:
         }
 
         resp = await self.client.send_job("stroke.paint", payload)
-        if resp.status == "error":
-            err_dict = resp.error or {}
-            err_code = err_dict.get("code", "PAINT_ERROR")
-            try:
-                code_enum = ErrorCode(err_code)
-            except ValueError:
-                code_enum = ErrorCode.PAINT_ERROR
-            raise KritaError(code_enum, err_dict.get("message", "Stroke drawing failed"))
-
-        return resp.result or {}
+        return check_job_response(resp, ErrorCode.PAINT_ERROR, "Stroke drawing failed")
 
     async def draw_bezier_curve(
         self,

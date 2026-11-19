@@ -58,17 +58,33 @@ def register_document_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                # Map color model & bit depth to Krita channel strings
-                # e.g., "RGBA", "U8" -> "RGBA", "U8"
+                cm = str(color_model).upper()
+                bd = str(bit_depth).upper()
+                prof = color_profile if color_profile else "sRGB-elle-V2-srgbtrc.icc"
+                try:
+                    def_prof = app.defaultColorProfile(cm, bd)
+                    if def_prof:
+                        prof = def_prof
+                except Exception as pe:
+                    pass
+
+                import os, tempfile
+                debug_log = os.path.join(tempfile.gettempdir(), "krita_mcp_bridge_debug.log")
+                with open(debug_log, "a", encoding="utf-8") as f:
+                    f.write(f"Calling app.createDocument({width}, {height}, {name}, {cm}, {bd}, {prof}, {resolution_dpi})\n")
+
                 doc = app.createDocument(
-                    width,
-                    height,
-                    name,
-                    color_model.lower(),
-                    bit_depth.lower(),
-                    color_profile,
-                    resolution_dpi,
+                    int(width),
+                    int(height),
+                    str(name),
+                    cm,
+                    bd,
+                    prof,
+                    float(resolution_dpi),
                 )
+                with open(debug_log, "a", encoding="utf-8") as f:
+                    f.write(f"app.createDocument returned: {doc}\n")
+
                 if not doc:
                     raise RuntimeError("Krita app.createDocument returned None")
                 active_win = app.activeWindow()
@@ -88,8 +104,11 @@ def register_document_handlers(dispatcher: Any) -> None:
                     "color_profile": doc.colorProfile(),
                     "modified": doc.modified(),
                 }
-        except ImportError:
-            pass
+        except Exception as e:
+            import os, tempfile, traceback
+            debug_log = os.path.join(tempfile.gettempdir(), "krita_mcp_bridge_debug.log")
+            with open(debug_log, "a", encoding="utf-8") as f:
+                f.write(f"Error in handle_create_document: {e}\n{traceback.format_exc()}\n")
 
         # Headless mock mode
         doc_id = f"doc_{uuid.uuid4().hex[:8]}"

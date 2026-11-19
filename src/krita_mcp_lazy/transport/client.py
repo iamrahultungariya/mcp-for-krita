@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Optional
+from typing import Any, Dict, Optional, Union
 
 from krita_mcp_lazy.core.errors import ErrorCode, KritaError
 from krita_mcp_lazy.core.schemas import JobRequest, JobResponse
@@ -112,8 +112,28 @@ class AsyncIPCClient:
             self._writer = None
             self._reader = None
 
-    async def send_job(self, request: JobRequest) -> JobResponse:
-        """Send a JobRequest to Krita bridge and await JobResponse."""
+    async def send_job(
+        self,
+        request_or_action: Union[JobRequest, str],
+        params: Optional[Dict[str, Any]] = None,
+        timeout_seconds: Optional[float] = None,
+    ) -> JobResponse:
+        """Send a JobRequest or (action, params) to Krita bridge and await JobResponse."""
+        if isinstance(request_or_action, str):
+            request = JobRequest(
+                action=request_or_action,
+                params=params or {},
+                timeout_seconds=timeout_seconds,
+            )
+        elif isinstance(request_or_action, JobRequest):
+            request = request_or_action
+            if timeout_seconds is not None:
+                request.timeout_seconds = timeout_seconds
+        else:
+            raise TypeError(
+                f"send_job expects a JobRequest instance or action string, got {type(request_or_action)}"
+            )
+
         async with self._lock:
             # Reconnect if connection was closed or never established
             if not self._writer or self._writer.is_closing():

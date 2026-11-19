@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from krita_mcp_lazy.core.errors import ErrorCode, KritaError
+from krita_mcp_lazy.core.errors import ErrorCode, KritaError, check_job_response
 from krita_mcp_lazy.environment.models import PerspectiveGridSpec, PerspectiveType
 from krita_mcp_lazy.transport.client import AsyncIPCClient
 
@@ -39,16 +39,7 @@ class PerspectiveGridEngine:
         }
 
         resp = await self.client.send_job("environment.create_grid", payload)
-        if resp.status == "error":
-            err_dict = resp.error or {}
-            err_code = err_dict.get("code", "DOCUMENT_ERROR")
-            try:
-                code_enum = ErrorCode(err_code)
-            except ValueError:
-                code_enum = ErrorCode.DOCUMENT_ERROR
-            raise KritaError(code_enum, err_dict.get("message", "Perspective grid creation failed"))
-
-        return resp.result or {}
+        return check_job_response(resp, ErrorCode.DOCUMENT_ERROR, "Perspective grid creation failed")
 
     async def setup_environment_depth_planes(
         self,
@@ -67,13 +58,4 @@ class PerspectiveGridEngine:
         }
 
         resp = await self.client.send_job("environment.setup_depth_planes", payload)
-        if resp.status == "error":
-            err_dict = resp.error or {}
-            err_code = err_dict.get("code", "DOCUMENT_ERROR")
-            try:
-                code_enum = ErrorCode(err_code)
-            except ValueError:
-                code_enum = ErrorCode.DOCUMENT_ERROR
-            raise KritaError(code_enum, err_dict.get("message", "Environment depth setup failed"))
-
-        return resp.result or {}
+        return check_job_response(resp, ErrorCode.DOCUMENT_ERROR, "Environment depth setup failed")

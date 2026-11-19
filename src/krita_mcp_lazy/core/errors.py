@@ -43,3 +43,38 @@ class KritaError(Exception):
             "details": self.details,
             "job_id": self.job_id,
         }
+
+
+def check_job_response(
+    resp: Any,
+    default_error_code: ErrorCode,
+    default_message: str = "Operation failed",
+) -> dict[str, Any]:
+    """Validate JobResponse status and raise KritaError with proper taxonomy code if failed."""
+    status_val = getattr(resp.status, "value", str(resp.status)).upper() if hasattr(resp, "status") else ""
+    if status_val not in ("SUCCESS", "JOBSTATUS.SUCCESS") and getattr(resp, "status", None) != "success":
+        code = default_error_code
+        err_msg = default_message
+
+        err_obj = getattr(resp, "error", None)
+        if isinstance(err_obj, dict):
+            err_msg = err_obj.get("message", default_message)
+            raw_code = err_obj.get("code")
+            if raw_code:
+                for member in ErrorCode:
+                    if member.value == raw_code:
+                        code = member
+                        break
+        elif isinstance(err_obj, str) and not err_obj.startswith("<AsyncMock"):
+            err_msg = err_obj
+
+        raw_err_code = getattr(resp, "error_code", None)
+        if raw_err_code:
+            for member in ErrorCode:
+                if member.value == raw_err_code:
+                    code = member
+                    break
+
+        raise KritaError(code=code, message=err_msg, job_id=getattr(resp, "job_id", None))
+
+    return getattr(resp, "result", None) or {}

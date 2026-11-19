@@ -105,3 +105,24 @@ async def test_client_connection_failure():
     with pytest.raises(KritaError) as exc_info:
         await client.send_job(req)
     assert exc_info.value.code == ErrorCode.KRITA_UNAVAILABLE
+
+
+@pytest.mark.asyncio
+async def test_client_send_job_overload_action_params():
+    token = "overload_test_token"
+    async def handler(req: JobRequest) -> JobResponse:
+        return JobResponse(job_id=req.job_id, status=JobStatus.SUCCESS, result={"action": req.action, "p": req.params})
+
+    server = AsyncIPCServer(host="127.0.0.1", port=19994, valid_token=token, handler=handler)
+    await server.start()
+
+    client = AsyncIPCClient(host="127.0.0.1", port=19994, token=token)
+    try:
+        # Call with (action, params) directly
+        res = await client.send_job("test.overload", {"foo": "bar"})
+        assert res.status == JobStatus.SUCCESS
+        assert res.result["action"] == "test.overload"
+        assert res.result["p"]["foo"] == "bar"
+    finally:
+        await client.close()
+        await server.stop()

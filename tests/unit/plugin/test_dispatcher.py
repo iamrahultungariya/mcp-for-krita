@@ -119,12 +119,98 @@ async def test_bridge_extension_dispatch_async():
             pass
 
 
+def test_bridge_extension_setup_and_token():
+    ext = BridgeExtension()
+    assert ext.token is not None
+    assert len(ext.token) >= 32
+    assert not ext._is_running
+
+    try:
+        ext.setup()
+        assert ext._is_running is True
+        assert ext.server is not None
+        # Verify handlers registered
+        assert "document.create" in ext.dispatcher._handlers
+        assert "stroke.paint" in ext.dispatcher._handlers
+        assert "brush.configure" in ext.dispatcher._handlers
+        assert "visual.capture_canvas" in ext.dispatcher._handlers
+    finally:
+        ext.stop_ipc_bridge()
+        assert ext._is_running is False
+
+
+def test_dispatcher_get_result_pop():
+    dispatcher = KritaMainThreadDispatcher(max_queue_size=10)
+    dispatcher.register_handler("test.action", lambda p: {"ok": True})
+
+    req = JobRequest(action="test.action", params={})
+    dispatcher.enqueue(req)
+    dispatcher.process_pending_jobs()
+
+    # Peek without popping
+    resp1 = dispatcher.get_result(req.job_id, pop=False)
+    assert resp1 is not None
+    assert resp1.status == JobStatus.SUCCESS
+
+    # Pop
+    resp2 = dispatcher.get_result(req.job_id, pop=True)
+    assert resp2 is not None
+    assert resp2.job_id == req.job_id
+
+    # Should now be gone from cache
+    resp3 = dispatcher.get_result(req.job_id)
+    assert resp3 is None
+
+
+def test_dispatcher_bounded_result_eviction():
+    # Set small max_results limit
+    dispatcher = KritaMainThreadDispatcher(max_queue_size=50, max_results=5)
+    dispatcher.register_handler("echo", lambda p: p)
+
+    job_ids = []
+    for i in range(10):
+        req = JobRequest(action="echo", params={"i": i})
+        job_ids.append(req.job_id)
+        dispatcher.enqueue(req)
+
+    dispatcher.process_pending_jobs(max_batch=10)
+
+    # Size must not exceed max_results
+    assert len(dispatcher._results) == 5
+
+    # Oldest 5 jobs must have been evicted (FIFO)
+    for old_id in job_ids[:5]:
+        assert dispatcher.get_result(old_id) is None
+
+    # Newest 5 jobs must still be present
+    for new_id in job_ids[5:]:
+        assert dispatcher.get_result(new_id) is not None
+
+
 def test_status_docker_widget():
     from plugins.krita_mcp_bridge.status_docker import StatusDocker
     docker = StatusDocker()
     assert docker.current_status == "READY"
     assert docker.queue_length == 0
-    
+
     docker.update_status("BUSY", active_job_id="job_abc", queue_length=3)
     assert docker.current_status == "BUSY"
+    assert docker.active_job_id == "job_abc"
     assert docker.queue_length == 3
+
+
+def test_dispatcher_status_listener():
+    from plugins.krita_mcp_bridge.status_docker import StatusDocker
+    docker = StatusDocker()
+    dispatcher = KritaMainThreadDispatcher(max_queue_size=10)
+    dispatcher.register_status_listener(docker.update_status)
+    dispatcher.register_handler("ping", lambda p: {"pong": True})
+
+    req = JobRequest(action="ping", params={})
+    dispatcher.enqueue(req)
+    assert docker.current_status == "QUEUED"
+    assert docker.queue_length == 1
+
+    dispatcher.process_pending_jobs()
+    assert docker.current_status == "READY"
+    assert docker.queue_length == 0

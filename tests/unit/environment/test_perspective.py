@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import AsyncMock
 
 from krita_mcp_lazy.core.errors import ErrorCode, KritaError
+from krita_mcp_lazy.core.schemas import JobRequest, JobStatus
 from krita_mcp_lazy.environment.models import DepthPlaneType, PerspectiveType
 from krita_mcp_lazy.environment.perspective import PerspectiveGridEngine
 
@@ -73,6 +74,35 @@ async def test_perspective_error_propagation():
             horizon_y=500.0,
         )
     assert exc_info.value.code == ErrorCode.DOCUMENT_ERROR
+
+
+def test_perspective_grid_real_geometry_drawing():
+    from plugins.krita_mcp_bridge.dispatcher import KritaMainThreadDispatcher
+    from plugins.krita_mcp_bridge.handlers_environment import register_environment_handlers, _mock_grid_records
+
+    dispatcher = KritaMainThreadDispatcher(max_queue_size=10)
+    register_environment_handlers(dispatcher)
+
+    req = JobRequest(
+        action="environment.create_grid",
+        params={
+            "doc_id": "doc_env_1",
+            "perspective_type": "two_point",
+            "horizon_y": 540.0,
+            "line_density": 10,
+        },
+    )
+    dispatcher.enqueue(req)
+    dispatcher.process_pending_jobs()
+
+    resp = dispatcher.get_result(req.job_id)
+    assert resp is not None
+    assert resp.status == JobStatus.SUCCESS
+    res = resp.result
+    assert res["perspective_type"] == "two_point"
+    assert res["horizon_y"] == 540.0
+    assert res["lines_drawn"] > 20  # Horizon line + rays for both vanishing points
+    assert "doc_env_1" in _mock_grid_records
 
 
 def test_mcp_environment_tools_registered():
