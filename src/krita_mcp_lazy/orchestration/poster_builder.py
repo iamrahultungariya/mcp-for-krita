@@ -197,8 +197,183 @@ class AnimePosterBuilder:
         )
 
     async def paint_hero_characters_and_thread(self, doc_id: str) -> None:
-        """Stub for Task 6 hero characters painting."""
-        pass
+        """Paint observation deck railing, lovers silhouettes, and the glowing red thread of destiny."""
+        palette = self.spec["palette"]
+
+        # 1. Observation Balcony Floor & Railing
+        # Floor base
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Balcony_Floor",
+                "points": [
+                    {"x": 0, "y": 3200, "pressure": 1.0},
+                    {"x": 1240, "y": 3200, "pressure": 1.0},
+                    {"x": 2480, "y": 3200, "pressure": 1.0},
+                ],
+                "color": palette["architecture_deck"],
+                "size": 400.0,
+                "opacity": 1.0,
+            },
+        )
+        # Top Railing bar
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Observation_Railing",
+                "points": [
+                    {"x": 0, "y": 2880, "pressure": 1.0},
+                    {"x": 2480, "y": 2880, "pressure": 1.0},
+                ],
+                "color": palette["architecture_deck"],
+                "size": 25.0,
+                "opacity": 1.0,
+            },
+        )
+
+        # 2. Hero Girl Silhouette (Anime heroine reaching rightward)
+        girl_body_strokes = [
+            {"x": 750, "y": 3100, "pressure": 1.0},  # Lower skirt
+            {"x": 770, "y": 2950, "pressure": 0.9},  # Waist
+            {"x": 780, "y": 2820, "pressure": 0.8},  # Torso
+            {"x": 785, "y": 2720, "pressure": 0.7},  # Neck & head base
+        ]
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Hero_Girl_Silhouette",
+                "points": girl_body_strokes,
+                "color": palette["character_silhouette"],
+                "size": 90.0,
+                "opacity": 1.0,
+            },
+        )
+        # Girl head & flowing twin-tail hair
+        girl_hair = [
+            {"x": 785, "y": 2680, "pressure": 0.9},
+            {"x": 750, "y": 2720, "pressure": 0.8},
+            {"x": 680, "y": 2780, "pressure": 0.7},
+            {"x": 620, "y": 2850, "pressure": 0.4},  # Hair blowing in wind
+        ]
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Hero_Girl_Silhouette",
+                "points": girl_hair,
+                "color": palette["character_silhouette"],
+                "size": 55.0,
+                "opacity": 1.0,
+            },
+        )
+        # Girl reaching arm & hand towards center
+        girl_arm = [
+            {"x": 810, "y": 2800, "pressure": 0.8},
+            {"x": 930, "y": 2770, "pressure": 0.6},
+            {"x": 1050, "y": 2740, "pressure": 0.5},
+            {"x": 1150, "y": 2720, "pressure": 0.3},  # Fingertip
+        ]
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Hero_Girl_Silhouette",
+                "points": girl_arm,
+                "color": palette["character_silhouette"],
+                "size": 22.0,
+                "opacity": 1.0,
+            },
+        )
+
+        # 3. Hero Boy Silhouette (Anime boy leaning forward, reaching leftward)
+        boy_body_strokes = [
+            {"x": 1720, "y": 3100, "pressure": 1.0},
+            {"x": 1700, "y": 2940, "pressure": 0.9},
+            {"x": 1680, "y": 2800, "pressure": 0.85},
+            {"x": 1660, "y": 2690, "pressure": 0.75},  # Neck & head
+        ]
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Hero_Boy_Silhouette",
+                "points": boy_body_strokes,
+                "color": palette["character_silhouette"],
+                "size": 105.0,
+                "opacity": 1.0,
+            },
+        )
+        # Boy hair profile
+        boy_hair = [
+            {"x": 1660, "y": 2650, "pressure": 0.9},
+            {"x": 1630, "y": 2680, "pressure": 0.7},
+            {"x": 1675, "y": 2630, "pressure": 0.6},
+        ]
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Hero_Boy_Silhouette",
+                "points": boy_hair,
+                "color": palette["character_silhouette"],
+                "size": 60.0,
+                "opacity": 1.0,
+            },
+        )
+        # Boy reaching arm towards center
+        boy_arm = [
+            {"x": 1640, "y": 2780, "pressure": 0.8},
+            {"x": 1520, "y": 2760, "pressure": 0.6},
+            {"x": 1420, "y": 2740, "pressure": 0.5},
+            {"x": 1330, "y": 2720, "pressure": 0.3},  # Fingertip
+        ]
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Hero_Boy_Silhouette",
+                "points": boy_arm,
+                "color": palette["character_silhouette"],
+                "size": 26.0,
+                "opacity": 1.0,
+            },
+        )
+
+        # 4. Red Thread of Fate (flowing curve linking their fingertips)
+        thread_points = [
+            {"x": 1150, "y": 2720, "pressure": 0.4},
+            {"x": 1180, "y": 2760, "pressure": 0.8},
+            {"x": 1240, "y": 2810, "pressure": 1.0},  # Lower drape
+            {"x": 1300, "y": 2760, "pressure": 0.8},
+            {"x": 1330, "y": 2720, "pressure": 0.4},
+        ]
+        # Core glowing crimson thread
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Red_Thread_Fate",
+                "points": thread_points,
+                "color": palette["fate_thread"],
+                "size": 8.0,
+                "opacity": 1.0,
+            },
+        )
+        # Soft outer glowing aura
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Thread_Glow",
+                "points": thread_points,
+                "color": palette["fate_glow"],
+                "size": 32.0,
+                "opacity": 0.65,
+            },
+        )
 
     async def paint_atmosphere_and_petals(self, doc_id: str) -> None:
         """Stub for Task 7 atmosphere painting."""

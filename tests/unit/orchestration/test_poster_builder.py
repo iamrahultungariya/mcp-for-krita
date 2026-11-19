@@ -43,3 +43,18 @@ async def test_paint_celestial_sky_and_city():
     # Must paint sky gradient, stars, moon, and distant skyline
     assert mock_client.send_job.call_count >= 4
 
+
+@pytest.mark.asyncio
+async def test_paint_hero_characters_and_thread():
+    mock_client = AsyncMock()
+    mock_client.send_job.return_value = JobResponse(
+        job_id="test-job-heroes",
+        status=JobStatus.SUCCESS,
+        result={"success": True},
+    )
+    builder = AnimePosterBuilder(mock_client)
+    await builder.paint_hero_characters_and_thread("doc_test")
+    # Must paint balcony railing, girl silhouette, boy silhouette, and red thread
+    assert mock_client.send_job.call_count >= 4
+
+
