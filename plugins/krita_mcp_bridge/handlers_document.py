@@ -304,10 +304,57 @@ def register_document_handlers(dispatcher: Any) -> None:
             pass
         return {"doc_id": doc_id, "mode": "headless_mock", "refreshed": True}
 
+    def handle_inspect_active(params: dict) -> dict:
+        try:
+            from krita import Krita
+            app = Krita.instance()
+            if app:
+                doc = app.activeDocument()
+                if doc:
+                    did = getattr(doc, "_lazy_id", None)
+                    if not did:
+                        did = "active"
+                        doc._lazy_id = did
+                    active_node = doc.activeNode()
+                    return {
+                        "doc_id": did,
+                        "name": doc.name(),
+                        "file_name": doc.fileName(),
+                        "width": doc.width(),
+                        "height": doc.height(),
+                        "resolution_dpi": doc.resolution(),
+                        "color_model": doc.colorModel(),
+                        "bit_depth": doc.colorDepth(),
+                        "color_profile": doc.colorProfile(),
+                        "modified": doc.modified(),
+                        "active_layer": active_node.name() if active_node else None,
+                        "mode": "live_krita",
+                    }
+        except Exception:
+            pass
+        if _mock_documents:
+            first = next(iter(_mock_documents.values()))
+            res = dict(first)
+            res["mode"] = "headless_mock"
+            return res
+        return {
+            "doc_id": "active",
+            "name": "Untitled",
+            "width": 1920,
+            "height": 1080,
+            "resolution_dpi": 300.0,
+            "color_model": "RGBA",
+            "bit_depth": "U8",
+            "color_profile": "sRGB",
+            "mode": "headless_mock",
+            "active_layer": "Paint Layer 1",
+        }
+
     dispatcher.register_handler("document.create", handle_create_document)
     dispatcher.register_handler("document.open", handle_open_document)
     dispatcher.register_handler("document.save", handle_save_document)
     dispatcher.register_handler("document.close", handle_close_document)
     dispatcher.register_handler("document.inspect", handle_inspect_document)
+    dispatcher.register_handler("document.inspect_active", handle_inspect_active)
     dispatcher.register_handler("document.list", handle_list_documents)
     dispatcher.register_handler("document.refresh", handle_refresh_document)

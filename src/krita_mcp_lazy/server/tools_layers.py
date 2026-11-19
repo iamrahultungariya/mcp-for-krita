@@ -207,3 +207,27 @@ def register_layer_tools(server: Any, config: Optional[KritaConfig] = None) -> N
             schema=custom_schema,
             preset=preset,
         )
+
+    @server.tool(
+        name="krita_apply_color_grading",
+        description="Inject native Krita color grading adjustment and atmospheric tint layers (e.g. golden_hour_anime, dusk_cinematic, studio_neutral) into document",
+    )
+    async def _tool_apply_color_grading(
+        doc_id: str,
+        profile: str = "golden_hour_anime",
+    ) -> dict[str, Any]:
+        from krita_mcp_lazy.color_grading.adjustments import ColorGradingManager
+        manager = ColorGradingManager()
+        client = AsyncIPCClient(host=cfg.host, port=cfg.port, token=cfg.token)
+        try:
+            await client.connect()
+            return await manager.scaffold_color_grading_stack(
+                client=client,
+                doc_id=doc_id,
+                profile=profile,
+            )
+        finally:
+            try:
+                await client.disconnect()
+            except Exception:
+                pass

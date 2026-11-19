@@ -118,6 +118,41 @@ def register_painting_tools(server: Any, config: Optional[KritaConfig] = None) -
         )
 
     @server.tool(
+        name="krita_live_tablet_stroke",
+        description="Execute real-time progressive live tablet stroke on Krita canvas with pressure sensitivity and native BGRA byte rendering",
+    )
+    async def _tool_live_tablet_stroke(
+        points: List[dict[str, Any]],
+        preset_name: str = "f)_Ink-3_Gpen",
+        color: str = "#000000",
+        size: float = 4.0,
+        opacity: float = 1.0,
+        doc_id: Optional[str] = None,
+        layer_name: Optional[str] = None,
+    ) -> dict[str, Any]:
+        client = AsyncIPCClient(host=cfg.host, port=cfg.port, token=cfg.token)
+        try:
+            await client.connect()
+            res = await client.send_job(
+                "stroke.live_tablet_stroke",
+                {
+                    "points": points,
+                    "brush_preset": preset_name,
+                    "color": color,
+                    "size": size,
+                    "opacity": opacity,
+                    "doc_id": doc_id,
+                    "layer_name": layer_name,
+                },
+            )
+            return res.result if res and res.result else {"success": False, "error": "No response"}
+        finally:
+            try:
+                await client.disconnect()
+            except Exception:
+                pass
+
+    @server.tool(
         name="krita_paint_bezier_curve",
         description="Paint a smooth cubic Bézier curve with pressure taper and dynamic inking profile",
     )
@@ -158,3 +193,38 @@ def register_painting_tools(server: Any, config: Optional[KritaConfig] = None) -
             opacity=opacity,
             size=size,
         )
+
+    @server.tool(
+        name="krita_live_tablet_stroke",
+        description="Execute real-time progressive live tablet stroke on Krita canvas with pressure sensitivity and native BGRA byte rendering",
+    )
+    async def _tool_live_tablet_stroke(
+        points: List[dict[str, Any]],
+        preset_name: str = "f)_Ink-3_Gpen",
+        color: str = "#000000",
+        size: float = 4.0,
+        opacity: float = 1.0,
+        doc_id: Optional[str] = None,
+        layer_name: Optional[str] = None,
+    ) -> dict[str, Any]:
+        client = AsyncIPCClient(host=cfg.host, port=cfg.port, token=cfg.token)
+        try:
+            await client.connect()
+            res = await client.send_job(
+                "stroke.live_tablet_stroke",
+                {
+                    "points": points,
+                    "brush_preset": preset_name,
+                    "color": color,
+                    "size": size,
+                    "opacity": opacity,
+                    "doc_id": doc_id,
+                    "layer_name": layer_name,
+                },
+            )
+            return res.result if res and res.result else {"success": False, "error": "No response"}
+        finally:
+            try:
+                await client.disconnect()
+            except Exception:
+                pass

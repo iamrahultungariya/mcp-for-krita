@@ -257,9 +257,20 @@ def register_stroke_handlers(dispatcher: Any) -> None:
         preset = params.get("brush_preset", "f)_Ink-3_Gpen")
         color = params.get("color", "#000000")
         size = float(params.get("size", 4.0))
+        opacity = float(params.get("opacity", 1.0)) if params.get("opacity") is not None else 1.0
+        doc_id = params.get("doc_id")
+        layer_name = params.get("layer_id") or params.get("layer_name")
 
         driver = CanvasTabletDriver()
-        return driver.execute_live_stroke(points=points, preset_name=preset, color_hex=color, size=size)
+        return driver.execute_live_stroke(
+            points=points,
+            preset_name=preset,
+            color_hex=color,
+            size=size,
+            opacity=opacity,
+            doc_id=doc_id,
+            layer_name=layer_name,
+        )
 
     dispatcher.register_handler("stroke.paint", handle_paint_stroke)
     dispatcher.register_handler("stroke.bezier_curve", handle_paint_stroke)

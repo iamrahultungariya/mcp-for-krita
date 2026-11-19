@@ -98,6 +98,22 @@ def register_document_tools(server: Any, config: Optional[KritaConfig] = None) -
         return await svc.inspect_document(doc_id)
 
     @server.tool(
+        name="krita_auto_sense_context",
+        description="Proactively probes Krita's connection status, active open document, resolution, DPI, color profile, and active layer without requiring manual user input",
+    )
+    async def _tool_auto_sense_context() -> dict[str, Any]:
+        from krita_mcp_lazy.bridge.oracle import get_oracle
+        oracle = get_oracle(cfg)
+        state = await oracle.probe_async(query_doc=True)
+        return {
+            "bridge_live": state.bridge_live,
+            "krita_running": state.krita_running,
+            "port": state.port,
+            "active_document": state.active_document,
+            "error": state.error,
+        }
+
+    @server.tool(
         name="krita_list_documents",
         description="List all currently open documents in the active Krita instance",
     )

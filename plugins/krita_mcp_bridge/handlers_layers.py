@@ -122,7 +122,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
 
         if parent_group:
             for l in layers:
-                if l["name"] == parent_group and l.get("type") == "group":
+                if l["name"] == parent_group and l.get("type") in ("group", "groupLayer"):
                     l.setdefault("children", []).append(new_node)
                     return {"doc_id": doc_id, "layer_id": new_node["id"], "name": name, "created": True}
         layers.append(new_node)
