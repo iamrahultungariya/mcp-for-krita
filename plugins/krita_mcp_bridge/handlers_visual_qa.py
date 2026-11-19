@@ -210,6 +210,8 @@ def register_visual_qa_handlers(dispatcher: Any) -> None:
         return {"checkpoints": _checkpoints.get(doc_id, [])}
 
     dispatcher.register_handler("visual.capture_canvas", handle_capture_canvas)
+    dispatcher.register_handler("visual_qa.capture", handle_capture_canvas)
+    dispatcher.register_handler("visual.capture", handle_capture_canvas)
     dispatcher.register_handler("visual.extract_region", handle_extract_region)
     dispatcher.register_handler("checkpoint.create", handle_create_checkpoint)
     dispatcher.register_handler("checkpoint.rollback", handle_rollback_checkpoint)
