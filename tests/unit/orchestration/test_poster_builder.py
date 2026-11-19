@@ -58,3 +58,19 @@ async def test_paint_hero_characters_and_thread():
     assert mock_client.send_job.call_count >= 4
 
 
+@pytest.mark.asyncio
+async def test_paint_atmosphere_and_typography():
+    mock_client = AsyncMock()
+    mock_client.send_job.return_value = JobResponse(
+        job_id="test-job-atmosphere",
+        status=JobStatus.SUCCESS,
+        result={"success": True},
+    )
+    builder = AnimePosterBuilder(mock_client)
+    await builder.paint_atmosphere_and_petals("doc_test")
+    await builder.render_cinematic_typography("doc_test")
+    # Must paint bokeh, petals, credit banner, kanji title, english sub, and release banner
+    assert mock_client.send_job.call_count >= 5
+
+
+

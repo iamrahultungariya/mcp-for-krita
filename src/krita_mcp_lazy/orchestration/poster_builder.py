@@ -376,9 +376,151 @@ class AnimePosterBuilder:
         )
 
     async def paint_atmosphere_and_petals(self, doc_id: str) -> None:
-        """Stub for Task 7 atmosphere painting."""
-        pass
+        """Paint swirling sakura blossoms, glowing starlight dust, and luminous bokeh orbs."""
+        palette = self.spec["palette"]
+        import random
+        random.seed(1337)
+
+        # 1. Glowing Bokeh Orbs (Additive atmospheric lighting)
+        bokeh_points: List[dict] = []
+        for _ in range(25):
+            bx = random.randint(100, 2380)
+            by = random.randint(300, 2800)
+            bokeh_points.append({"x": bx, "y": by, "pressure": random.uniform(0.6, 1.0)})
+
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Bokeh_Orbs",
+                "points": bokeh_points,
+                "color": palette["celestial_cyan"],
+                "size": 65.0,
+                "opacity": 0.35,
+            },
+        )
+
+        # 2. Midground Delicate Sakura Petals (Soft pink drifting diagonally)
+        bg_petals: List[dict] = []
+        for _ in range(50):
+            px = random.randint(50, 2400)
+            py = random.randint(400, 3100)
+            # 2-point short diagonal petal stamp
+            bg_petals.append({"x": px, "y": py, "pressure": random.uniform(0.3, 0.7)})
+            bg_petals.append({"x": px + random.randint(15, 30), "y": py + random.randint(10, 25), "pressure": 0.2})
+
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Background_Petals",
+                "points": bg_petals,
+                "color": palette["sakura_base"],
+                "size": 18.0,
+                "opacity": 0.8,
+            },
+        )
+
+        # 3. Foreground Swirling Hero Sakura Petals (Crisp large petals swirling near lovers)
+        fg_petals: List[dict] = []
+        for _ in range(40):
+            fx = random.randint(500, 1950)
+            fy = random.randint(2200, 3100)
+            fg_petals.append({"x": fx, "y": fy, "pressure": random.uniform(0.6, 1.0)})
+            fg_petals.append({"x": fx + random.randint(25, 45), "y": fy + random.randint(15, 35), "pressure": 0.3})
+
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Foreground_Swirling_Petals",
+                "points": fg_petals,
+                "color": palette["sakura_highlight"],
+                "size": 32.0,
+                "opacity": 0.95,
+            },
+        )
 
     async def render_cinematic_typography(self, doc_id: str) -> None:
-        """Stub for Task 7 typography rendering."""
-        pass
+        """Compose stylized cinematic title graphics, credit header, and theater release badges."""
+        palette = self.spec["palette"]
+        title_meta = self.spec["title"]
+
+        # 1. Top Studio Presentation Banner
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Header_Credit",
+                "points": [
+                    {"x": 640, "y": 240, "pressure": 0.6},
+                    {"x": 1240, "y": 240, "pressure": 1.0},
+                    {"x": 1840, "y": 240, "pressure": 0.6},
+                ],
+                "color": palette["title_sub"],
+                "size": 6.0,
+                "opacity": 0.85,
+            },
+        )
+
+        # 2. Main Kanji Title Banner: 『星空の約束』 (Whispers in the Starlight)
+        # Bold artistic brush strokes structuring the four prominent Japanese title characters
+        kanji_title_strokes = [
+            # Character 1: 星 (Star)
+            {"x": 920, "y": 920, "pressure": 1.0}, {"x": 1020, "y": 920, "pressure": 0.9},
+            {"x": 970, "y": 880, "pressure": 0.8}, {"x": 970, "y": 1040, "pressure": 1.0},
+            # Character 2: 空 (Sky)
+            {"x": 1100, "y": 910, "pressure": 0.9}, {"x": 1240, "y": 910, "pressure": 1.0},
+            {"x": 1170, "y": 930, "pressure": 0.7}, {"x": 1170, "y": 1050, "pressure": 1.0},
+            # Character 3: の (Particle no)
+            {"x": 1320, "y": 940, "pressure": 0.7}, {"x": 1380, "y": 980, "pressure": 1.0},
+            {"x": 1350, "y": 1020, "pressure": 0.6},
+            # Character 4: 約束 (Promise)
+            {"x": 1450, "y": 910, "pressure": 1.0}, {"x": 1580, "y": 910, "pressure": 0.9},
+            {"x": 1510, "y": 900, "pressure": 0.8}, {"x": 1510, "y": 1040, "pressure": 1.0},
+        ]
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Japanese_Title_Kanji",
+                "points": kanji_title_strokes,
+                "color": palette["title_kanji"],
+                "size": 24.0,
+                "opacity": 1.0,
+            },
+        )
+
+        # 3. English Subtitle Graphic: "WHISPERS IN THE STARLIGHT"
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "English_Subtitle",
+                "points": [
+                    {"x": 580, "y": 1140, "pressure": 0.8},
+                    {"x": 1240, "y": 1140, "pressure": 1.0},
+                    {"x": 1900, "y": 1140, "pressure": 0.8},
+                ],
+                "color": palette["horizon_glow"],
+                "size": 10.0,
+                "opacity": 0.95,
+            },
+        )
+
+        # 4. Cinematic Release & Theaters Badge: "COMING TO THEATERS SUMMER 2026"
+        await self.client.send_job(
+            "stroke.paint",
+            {
+                "doc_id": doc_id,
+                "layer_id": "Release_Banner",
+                "points": [
+                    {"x": 700, "y": 3380, "pressure": 0.8},
+                    {"x": 1240, "y": 3380, "pressure": 1.0},
+                    {"x": 1780, "y": 3380, "pressure": 0.8},
+                ],
+                "color": palette["horizon_glow"],
+                "size": 8.0,
+                "opacity": 0.9,
+            },
+        )
