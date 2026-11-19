@@ -28,3 +28,18 @@ async def test_scaffold_poster_document():
     # Scaffold groups
     await builder.scaffold_semantic_groups(doc_id)
     assert mock_client.send_job.call_count >= 7
+
+
+@pytest.mark.asyncio
+async def test_paint_celestial_sky_and_city():
+    mock_client = AsyncMock()
+    mock_client.send_job.return_value = JobResponse(
+        job_id="test-job-celestial",
+        status=JobStatus.SUCCESS,
+        result={"success": True},
+    )
+    builder = AnimePosterBuilder(mock_client)
+    await builder.paint_celestial_environment("doc_test")
+    # Must paint sky gradient, stars, moon, and distant skyline
+    assert mock_client.send_job.call_count >= 4
+
