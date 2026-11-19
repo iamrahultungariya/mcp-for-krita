@@ -7,6 +7,7 @@ from krita_mcp_lazy.server.tools_animation import register_animation_tools
 from krita_mcp_lazy.server.tools_art_planning import register_art_planning_tools
 from krita_mcp_lazy.server.tools_assets import register_assets_tools
 from krita_mcp_lazy.server.tools_autonomous_painter import register_autonomous_painter_tools
+from krita_mcp_lazy.server.tools_cel_studio import register_cel_studio_tools
 from krita_mcp_lazy.server.tools_character import register_character_tools
 from krita_mcp_lazy.server.tools_document import register_document_tools
 from krita_mcp_lazy.server.tools_environment import register_environment_tools
@@ -52,6 +53,8 @@ def create_mcp_server(config: Optional[KritaConfig] = None) -> Any:
     register_assets_tools(server, cfg)
     # Register Visual QA Tools
     register_visual_qa_tools(server, cfg)
+    # Register Cel Studio Tools
+    register_cel_studio_tools(server, cfg)
     # Register Animation Tools
     register_animation_tools(server, cfg)
     # Register Tahoma2D Tools

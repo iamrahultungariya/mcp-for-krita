@@ -27,8 +27,8 @@ class CelArtDecomposer:
         self,
         trapping_dilation_px: int = 2,
         dog_sigma1: float = 1.0,
-        dog_sigma2: float = 2.4,
-        dog_threshold: int = 15,
+        dog_sigma2: float = 2.2,
+        dog_threshold: int = 10,
         min_stroke_length: int = 3,
         color_quantization_k: int = 16,
     ) -> None:
@@ -56,22 +56,11 @@ class CelArtDecomposer:
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
-        # Also incorporate high-contrast dark contours
-        adaptive = cv2.adaptiveThreshold(
-            gray,
-            255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY_INV,
-            11,
-            4,
-        )
-        combined = cv2.bitwise_or(mask, adaptive)
-
         # Keep only connected ink structures of reasonable size
-        num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(combined, connectivity=8)
-        clean_mask = np.zeros_like(combined)
+        num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+        clean_mask = np.zeros_like(mask)
         for i in range(1, num_labels):
-            if stats[i, cv2.CC_STAT_AREA] >= 4:
+            if stats[i, cv2.CC_STAT_AREA] >= 3:
                 clean_mask[labels == i] = 255
 
         return clean_mask
@@ -95,6 +84,7 @@ class CelArtDecomposer:
         self,
         skel: np.ndarray,
         dist_map: np.ndarray,
+        bgr: Optional[np.ndarray] = None,
     ) -> List[TaperedStroke]:
         """Convert skeleton into continuous ordered Bézier curves with pressure tapering."""
         h, w = skel.shape
@@ -171,13 +161,22 @@ class CelArtDecomposer:
                     pressures[0] = max(0.15, pressures[0] * 0.4)
                     pressures[-1] = max(0.15, pressures[-1] * 0.4)
 
+                # Sample stroke color from reference at midpoint
+                stroke_color = "#000000"
+                if bgr is not None and len(simplified) > 0:
+                    mid_idx = len(simplified) // 2
+                    mx = int(np.clip(round(simplified[mid_idx][0]), 0, w - 1))
+                    my = int(np.clip(round(simplified[mid_idx][1]), 0, h - 1))
+                    sbgr = bgr[my, mx]
+                    stroke_color = f"#{sbgr[2]:02x}{sbgr[1]:02x}{sbgr[0]:02x}"
+
                 strokes.append(
                     TaperedStroke(
                         stroke_id=f"ink_stroke_{stroke_idx:04d}",
                         points=simplified,
                         pressures=pressures,
                         brush_preset="f)_Ink-3_Gpen",
-                        color="#000000",
+                        color=stroke_color,
                         base_width=max_dist * 2.0,
                     )
                 )
@@ -216,9 +215,9 @@ class CelArtDecomposer:
         centers = np.uint8(centers)
         quantized = centers[labels.flatten()].reshape(smoothed.shape)
 
-        # Build composite trapped flats buffer (RGBA)
+        # Build composite trapped flats buffer (RGBA) preserving clean cel-fills
         composite_flats = np.zeros((h, w, 4), dtype=np.uint8)
-        composite_flats[:, :, :3] = quantized
+        composite_flats[:, :, :3] = smoothed
         composite_flats[:, :, 3] = 255
 
         # Dilation kernel for digital under-trapping
@@ -348,7 +347,7 @@ class CelArtDecomposer:
         skel = self._skeletonize(lineart_mask)
 
         # 4. Continuous Bézier stroke tracing with G-Pen pressure profile
-        vector_strokes = self._trace_vector_strokes(skel, dist_map)
+        vector_strokes = self._trace_vector_strokes(skel, dist_map, bgr)
 
         # 5. Flat colors with digital under-trapping
         flat_regions, comp_flats = self._extract_trapped_flats(bgr, lineart_mask)
@@ -357,6 +356,11 @@ class CelArtDecomposer:
         shadows, highlights, comp_shadows, comp_highlights = self._extract_shadows_and_highlights(
             bgr, lineart_mask
         )
+
+        # 7. Composite lineart buffer (RGBA)
+        comp_lineart = np.zeros((h, w, 4), dtype=np.uint8)
+        comp_lineart[lineart_mask > 0, :3] = bgr[lineart_mask > 0]
+        comp_lineart[lineart_mask > 0, 3] = 255
 
         logger.info(
             "Decomposition complete: %d vector strokes, %d flat regions, %d shadows, %d highlights.",
@@ -373,6 +377,7 @@ class CelArtDecomposer:
             highlights=highlights,
             lineart_mask=lineart_mask,
             composite_flats=comp_flats,
+            composite_lineart=comp_lineart,
             composite_shadows=comp_shadows,
             composite_highlights=comp_highlights,
             width=w,

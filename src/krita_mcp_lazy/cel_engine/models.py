@@ -70,6 +70,7 @@ class CelArtDecomposition:
     highlights: List[HighlightRegion] = field(default_factory=list)
     lineart_mask: np.ndarray = field(default_factory=lambda: np.zeros((1, 1), dtype=np.uint8))
     composite_flats: Optional[np.ndarray] = None
+    composite_lineart: Optional[np.ndarray] = None
     composite_shadows: Optional[np.ndarray] = None
     composite_highlights: Optional[np.ndarray] = None
     width: int = 0
