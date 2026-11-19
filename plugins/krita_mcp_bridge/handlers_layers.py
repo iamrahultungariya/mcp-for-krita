@@ -237,9 +237,45 @@ def register_layer_handlers(dispatcher: Any) -> None:
         # Headless mock mode
         return {"doc_id": doc_id, "layer_name": layer_name, "active": True}
 
+    def handle_set_pixel_tile(params: dict) -> dict:
+        import base64
+        doc_id = params.get("doc_id", "default")
+        layer_id = params.get("layer_id") or params.get("layer_name")
+        x = int(params.get("x", 0))
+        y = int(params.get("y", 0))
+        w = int(params.get("width", 0))
+        h = int(params.get("height", 0))
+        pixels_b64 = params.get("pixels_b64", "")
+
+        raw_bytes = base64.b64decode(pixels_b64) if pixels_b64 else b""
+
+        try:
+            from krita import Krita
+            app = Krita.instance()
+            if app:
+                doc = get_document_by_id(doc_id)
+                if doc and layer_id:
+                    node = doc.nodeByName(layer_id)
+                    if node and raw_bytes:
+                        try:
+                            from PyQt5.QtCore import QByteArray
+                            node.setPixelData(QByteArray(raw_bytes), x, y, w, h)
+                        except ImportError:
+                            try:
+                                from PyQt6.QtCore import QByteArray
+                                node.setPixelData(QByteArray(raw_bytes), x, y, w, h)
+                            except ImportError:
+                                node.setPixelData(raw_bytes, x, y, w, h)
+                        return {"doc_id": doc_id, "layer_id": layer_id, "mode": "live_krita", "success": True}
+        except Exception as exc:
+            logger.warning("handle_set_pixel_tile failed in Krita: %s", exc)
+
+        return {"doc_id": doc_id, "layer_id": layer_id, "mode": "headless_mock", "success": True}
+
     dispatcher.register_handler("layer.tree", handle_layer_tree)
     dispatcher.register_handler("layer.create", handle_create_layer)
     dispatcher.register_handler("layer.delete", handle_delete_layer)
     dispatcher.register_handler("layer.reorder", handle_reorder_layer)
     dispatcher.register_handler("layer.set_properties", handle_set_properties)
     dispatcher.register_handler("layer.set_active", handle_set_active)
+    dispatcher.register_handler("layer.set_pixel_tile", handle_set_pixel_tile)

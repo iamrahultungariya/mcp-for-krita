@@ -290,9 +290,24 @@ def register_document_handlers(dispatcher: Any) -> None:
         # Headless mock mode
         return {"documents": list(_mock_documents.values())}
 
+    def handle_refresh_document(params: dict) -> dict:
+        doc_id = params.get("doc_id")
+        try:
+            from krita import Krita
+            app = Krita.instance()
+            if app:
+                doc = get_document_by_id(doc_id)
+                if doc:
+                    doc.refreshProjection()
+                    return {"doc_id": doc_id, "mode": "live_krita", "refreshed": True}
+        except Exception:
+            pass
+        return {"doc_id": doc_id, "mode": "headless_mock", "refreshed": True}
+
     dispatcher.register_handler("document.create", handle_create_document)
     dispatcher.register_handler("document.open", handle_open_document)
     dispatcher.register_handler("document.save", handle_save_document)
     dispatcher.register_handler("document.close", handle_close_document)
     dispatcher.register_handler("document.inspect", handle_inspect_document)
     dispatcher.register_handler("document.list", handle_list_documents)
+    dispatcher.register_handler("document.refresh", handle_refresh_document)
