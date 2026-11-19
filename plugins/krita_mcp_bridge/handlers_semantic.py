@@ -4,6 +4,7 @@ import logging
 import uuid
 from typing import Any, Dict, List
 
+from plugins.krita_mcp_bridge.handlers_document import get_document_by_id
 from plugins.krita_mcp_bridge.handlers_layers import _get_doc_layers
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ def register_semantic_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     def _build_tree(tree: Any, parent_node: Any) -> None:
                         nonlocal created_groups, created_layers

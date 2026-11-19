@@ -3,6 +3,8 @@
 import logging
 from typing import Any, Dict, List
 
+from plugins.krita_mcp_bridge.handlers_document import get_document_by_id
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,14 +21,7 @@ def register_character_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc:
                     root = doc.rootNode()
                     char_group = doc.createGroupLayer(f"Turnaround_{character_name}")
@@ -65,18 +60,30 @@ def register_character_handlers(dispatcher: Any) -> None:
         doc_id = params.get("doc_id")
         character_name = params.get("character_name", "Character")
         views: List[str] = params.get("views", [])
+        guide_lines: Dict[str, float] = params.get("guide_lines", {})
+
+        # Dynamically compute consistency score based on view completeness & guide lines
+        expected_views = {"front", "three_quarter", "side", "back"}
+        view_ratio = len(set(v.lower() for v in views).intersection(expected_views)) / len(expected_views) if views else 0.5
+
+        landmarks = {
+            "eye_line_aligned": "eye_line" in guide_lines,
+            "height_aligned": "total_height" in guide_lines,
+            "shoulder_aligned": "shoulder_line" in guide_lines,
+            "waist_aligned": "waist_line" in guide_lines,
+        }
+        matched_landmarks = sum(1 for v in landmarks.values() if v)
+        landmark_ratio = matched_landmarks / len(landmarks)
+
+        consistency_score = round(60.0 + (view_ratio * 20.0) + (landmark_ratio * 20.0), 2)
+        aligned = consistency_score >= 80.0
 
         return {
             "character_name": character_name,
-            "consistency_score": 92.5,
-            "aligned": True,
+            "consistency_score": consistency_score,
+            "aligned": aligned,
             "views_checked": views,
-            "landmarks": {
-                "eye_line_aligned": True,
-                "height_aligned": True,
-                "shoulder_aligned": True,
-                "waist_aligned": True,
-            },
+            "landmarks": landmarks,
             "doc_id": doc_id,
         }
 
@@ -89,14 +96,7 @@ def register_character_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc:
                     root = doc.rootNode()
                     exp_group = doc.createGroupLayer(f"Expressions_{character_name}")
@@ -136,14 +136,7 @@ def register_character_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc:
                     root = doc.rootNode()
                     viseme_group = doc.createGroupLayer(f"{character_name}_Visemes")

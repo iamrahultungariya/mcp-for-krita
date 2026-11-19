@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from plugins.krita_mcp_bridge.handlers_document import _mock_documents
+from plugins.krita_mcp_bridge.handlers_document import _mock_documents, get_document_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def register_canvas_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     doc.resizeImage(x_offset, y_offset, width, height)
                     return {
@@ -64,7 +64,7 @@ def register_canvas_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     doc.crop(x, y, width, height)
                     return {
@@ -99,7 +99,7 @@ def register_canvas_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     doc.rotateImage(angle_degrees)
                     return {
@@ -123,12 +123,12 @@ def register_canvas_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     return {
                         "doc_id": doc_id or "active",
-                        "x": doc.x(),
-                        "y": doc.y(),
+                        "x": 0,
+                        "y": 0,
                         "width": doc.width(),
                         "height": doc.height(),
                         "resolution_dpi": doc.resolution(),
@@ -158,10 +158,14 @@ def register_canvas_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
-                    # Sample 1x1 pixel data using doc.pixelData()
-                    pixel_bytes = doc.pixelData(x, y, 1, 1)
+                    target_node = doc.activeNode() or (
+                        doc.rootNode().childNodes()[0]
+                        if hasattr(doc, "rootNode") and doc.rootNode().childNodes()
+                        else None
+                    )
+                    pixel_bytes = target_node.pixelData(x, y, 1, 1) if target_node and hasattr(target_node, "pixelData") else None
                     if pixel_bytes and len(pixel_bytes) >= 4:
                         # Default RGBA ordering in Krita is BGRA or RGBA based on color model
                         b, g, r, a = pixel_bytes[0], pixel_bytes[1], pixel_bytes[2], pixel_bytes[3]

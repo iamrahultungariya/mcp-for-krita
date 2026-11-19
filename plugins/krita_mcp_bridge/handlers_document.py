@@ -6,8 +6,40 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# In-memory document registry for headless/mock environments
+# In-memory document registry for active Krita instances and headless/mock environments
+_doc_registry: Dict[str, Any] = {}
 _mock_documents: Dict[str, dict] = {}
+
+
+def get_document_by_id(doc_id: Optional[str] = None) -> Optional[Any]:
+    """Retrieve KisDocument by ID or name from registry or Krita documents list.
+
+    If doc_id is None or not found, safely falls back to Krita's activeDocument().
+    """
+    try:
+        from krita import Krita
+        app = Krita.instance()
+        if not app:
+            return None
+
+        open_docs = app.documents() if hasattr(app, "documents") else []
+
+        if doc_id and doc_id in _doc_registry:
+            doc = _doc_registry[doc_id]
+            if doc in open_docs:
+                return doc
+            else:
+                del _doc_registry[doc_id]
+
+        if doc_id:
+            for d in open_docs:
+                if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id or d.name() == doc_id:
+                    _doc_registry[doc_id] = d
+                    return d
+
+        return app.activeDocument()
+    except ImportError:
+        return None
 
 
 def register_document_handlers(dispatcher: Any) -> None:
@@ -43,6 +75,8 @@ def register_document_handlers(dispatcher: Any) -> None:
                 if active_win:
                     active_win.addView(doc)
                 doc_id = str(uuid.uuid4())[:8]
+                doc._lazy_id = doc_id
+                _doc_registry[doc_id] = doc
                 return {
                     "doc_id": doc_id,
                     "name": doc.name(),
@@ -91,6 +125,8 @@ def register_document_handlers(dispatcher: Any) -> None:
                 if active_win:
                     active_win.addView(doc)
                 doc_id = str(uuid.uuid4())[:8]
+                doc._lazy_id = doc_id
+                _doc_registry[doc_id] = doc
                 return {
                     "doc_id": doc_id,
                     "name": doc.name(),
@@ -128,13 +164,13 @@ def register_document_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     if file_path:
                         success = doc.saveAs(file_path)
                     else:
                         success = doc.save()
-                    return {"doc_id": doc_id or "active", "saved": success, "file_path": doc.fileName()}
+                    return {"doc_id": doc_id or getattr(doc, "_lazy_id", "active"), "saved": success, "file_path": doc.fileName()}
         except ImportError:
             pass
 
@@ -151,10 +187,16 @@ def register_document_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
+                    resolved_id = doc_id or getattr(doc, "_lazy_id", "active")
+                    if doc_id and doc_id in _doc_registry:
+                        del _doc_registry[doc_id]
+                    for k, v in list(_doc_registry.items()):
+                        if v == doc:
+                            del _doc_registry[k]
                     closed = doc.close()
-                    return {"doc_id": doc_id or "active", "closed": closed}
+                    return {"doc_id": resolved_id, "closed": closed}
         except ImportError:
             pass
 
@@ -169,10 +211,10 @@ def register_document_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     return {
-                        "doc_id": doc_id or "active",
+                        "doc_id": doc_id or getattr(doc, "_lazy_id", "active"),
                         "name": doc.name(),
                         "width": doc.width(),
                         "height": doc.height(),
@@ -210,8 +252,13 @@ def register_document_handlers(dispatcher: Any) -> None:
                 docs = app.documents()
                 doc_list = []
                 for idx, d in enumerate(docs):
+                    did = getattr(d, "_lazy_id", None)
+                    if not did:
+                        did = f"doc_{idx}"
+                        d._lazy_id = did
+                        _doc_registry[did] = d
                     doc_list.append({
-                        "doc_id": f"doc_{idx}",
+                        "doc_id": did,
                         "name": d.name(),
                         "width": d.width(),
                         "height": d.height(),

@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 from krita_mcp_lazy.core.errors import ErrorCode, KritaError
 from krita_mcp_lazy.core.schemas import JobRequest, JobResponse, JobStatus
+from krita_mcp_lazy.core.security import get_or_create_shared_token
 from krita_mcp_lazy.transport.server import AsyncIPCServer
 from plugins.krita_mcp_bridge.dispatcher import KritaMainThreadDispatcher
 from plugins.krita_mcp_bridge.handlers_animation import register_animation_handlers
@@ -55,7 +56,7 @@ class BridgeExtension(Extension):
         super().__init__(parent)
         self.host = host
         self.port = port
-        self.token = token
+        self.token = token if token is not None else get_or_create_shared_token()
         self.dispatcher = KritaMainThreadDispatcher(max_queue_size=max_queue_size)
         self.server: Optional[AsyncIPCServer] = None
         self._server_thread: Optional[threading.Thread] = None
@@ -79,7 +80,8 @@ class BridgeExtension(Extension):
         register_visual_qa_handlers(self.dispatcher)
         register_animation_handlers(self.dispatcher)
         register_tahoma2d_handlers(self.dispatcher)
-        logger.info("krita-MCP-lazy BridgeExtension setup completed")
+        self.start_ipc_bridge()
+        logger.info("krita-MCP-lazy BridgeExtension setup completed and IPC server launched")
 
     def createActions(self, window: Any) -> None:
         """Called by Krita when a main window is created."""
@@ -97,7 +99,7 @@ class BridgeExtension(Extension):
         deadline = start_t + (request.timeout_seconds or timeout_seconds)
 
         while time.perf_counter() < deadline:
-            res = self.dispatcher.get_result(request.job_id)
+            res = self.dispatcher.get_result(request.job_id, pop=True)
             if res is not None:
                 return res
             await asyncio.sleep(0.005)
@@ -117,6 +119,8 @@ class BridgeExtension(Extension):
         if self._is_running:
             return
 
+        started_event = threading.Event()
+
         def _run_server() -> None:
             self._server_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._server_loop)
@@ -134,16 +138,20 @@ class BridgeExtension(Extension):
             async def _main_coro() -> None:
                 assert self.server is not None
                 await self.server.start()
+                started_event.set()
                 while self._is_running:
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.05)
                 await self.server.stop()
 
-            self._server_loop.run_until_complete(_main_coro())
-            self._server_loop.close()
+            try:
+                self._server_loop.run_until_complete(_main_coro())
+            finally:
+                self._server_loop.close()
 
         self._is_running = True
         self._server_thread = threading.Thread(target=_run_server, daemon=True, name="KritaIPCBridgeThread")
         self._server_thread.start()
+        started_event.wait(timeout=2.0)
         logger.info("IPC Bridge thread launched on %s:%d", self.host, self.port)
 
     def stop_ipc_bridge(self) -> None:

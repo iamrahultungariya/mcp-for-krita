@@ -90,10 +90,26 @@ def register_painting_handlers(dispatcher: Any) -> None:
                     view = win.activeView()
                     if size is not None:
                         view.setBrushSize(float(size))
-                    # Set foreground color if provided
-                    if color:
-                        # Parse color if ManagedColor is available
-                        pass
+                    if opacity is not None and hasattr(view, "setPaintingOpacity"):
+                        view.setPaintingOpacity(float(opacity))
+                    if flow is not None and hasattr(view, "setPaintingFlow"):
+                        view.setPaintingFlow(float(flow))
+
+                    try:
+                        from krita import ManagedColor
+                        try:
+                            from PyQt5.QtGui import QColor
+                        except ImportError:
+                            from PyQt6.QtGui import QColor
+
+                        if color:
+                            mc = ManagedColor.fromQColor(QColor(color))
+                            view.setForeGroundColor(mc)
+                        if background_color:
+                            mc_bg = ManagedColor.fromQColor(QColor(background_color))
+                            view.setBackGroundColor(mc_bg)
+                    except Exception as e:
+                        logger.debug("ManagedColor configuration fallback: %s", e)
         except ImportError:
             pass
 

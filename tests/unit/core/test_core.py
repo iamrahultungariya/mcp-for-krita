@@ -1,9 +1,40 @@
+import os
+import tempfile
+from pathlib import Path
 import pytest
 from pydantic import ValidationError
 from krita_mcp_lazy.core.config import KritaConfig
 from krita_mcp_lazy.core.errors import KritaError, ErrorCode
-from krita_mcp_lazy.core.security import AuthTokenManager
+from krita_mcp_lazy.core.security import AuthTokenManager, get_or_create_shared_token
 from krita_mcp_lazy.core.schemas import JobRequest, JobResponse, JobStatus
+
+
+def test_shared_token_env_var(monkeypatch):
+    test_token = "env_secret_token_1234567890abcdef"
+    monkeypatch.setenv("KRITA_MCP_TOKEN", test_token)
+    token = get_or_create_shared_token()
+    assert token == test_token
+
+    # Ensure KritaConfig picks it up by default
+    config = KritaConfig()
+    assert config.token == test_token
+
+
+def test_shared_token_file_persistence(monkeypatch, tmp_path):
+    monkeypatch.delenv("KRITA_MCP_TOKEN", raising=False)
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setattr(Path, "home", lambda: fake_home)
+
+    token1 = get_or_create_shared_token()
+    assert len(token1) >= 32
+    token_file = fake_home / ".krita_mcp_lazy" / "session.token"
+    assert token_file.exists()
+    assert token_file.read_text(encoding="utf-8").strip() == token1
+
+    # Second call should read the existing token file
+    token2 = get_or_create_shared_token()
+    assert token2 == token1
 
 
 def test_config_defaults():
@@ -106,3 +137,24 @@ def test_krita_error_taxonomy():
     assert err_dict["message"] == "Authentication failed: invalid token"
     assert err_dict["details"] == {"attempted_host": "127.0.0.1"}
     assert err_dict["job_id"] == "job-123"
+
+
+def test_schema_dataclass_fallback_parity():
+    from krita_mcp_lazy.core.schemas import JobRequest, JobResponse, JobStatus
+    req = JobRequest(action="test.ping", params={"val": 42})
+    dumped = req.model_dump()
+    assert dumped["action"] == "test.ping"
+    assert dumped["params"] == {"val": 42}
+    validated = JobRequest.model_validate(dumped)
+    assert validated.action == "test.ping"
+    assert validated.params == {"val": 42}
+
+    resp = JobResponse(job_id=req.job_id, status=JobStatus.SUCCESS, result={"pong": True})
+    dumped_resp = resp.model_dump()
+    assert dumped_resp["job_id"] == req.job_id
+    assert dumped_resp["status"] == "SUCCESS"
+    assert dumped_resp["result"] == {"pong": True}
+    validated_resp = JobResponse.model_validate(dumped_resp)
+    assert validated_resp.job_id == req.job_id
+    assert validated_resp.status == JobStatus.SUCCESS
+

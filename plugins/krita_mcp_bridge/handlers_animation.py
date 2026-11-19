@@ -4,6 +4,8 @@ import logging
 import os
 from typing import Any, Dict
 
+from plugins.krita_mcp_bridge.handlers_document import get_document_by_id
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,37 +19,34 @@ def register_animation_handlers(dispatcher: Any) -> None:
         keyframe_type = params.get("keyframe_type", "blank")
         max_cache_mb = float(params.get("max_cache_mb", 500.0))
 
+        w = 1920
+        h = 1080
+
         try:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc:
+                    w = doc.width()
+                    h = doc.height()
                     node = doc.nodeByName(layer_id)
                     if node:
                         if hasattr(node, "setAnimated"):
                             node.setAnimated(True)
                         doc.refreshProjection()
-                        return {
-                            "frame_index": frame_index,
-                            "cache_usage_mb": 45.2,
-                            "status": "ok",
-                            "doc_id": doc_id,
-                        }
         except ImportError:
             pass
 
+        # Dynamically compute uncompressed raster memory for animation frames: w * h * 4 bytes
+        frame_bytes = w * h * 4
+        cache_usage_mb = round((frame_bytes * max(1, frame_index + 1)) / (1024 * 1024), 2)
+        status = "ok" if cache_usage_mb <= max_cache_mb else "cache_warning"
+
         return {
             "frame_index": frame_index,
-            "cache_usage_mb": 45.2,
-            "status": "ok",
+            "cache_usage_mb": cache_usage_mb,
+            "status": status,
             "doc_id": doc_id,
         }
 
@@ -64,14 +63,7 @@ def register_animation_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc:
                     node = doc.nodeByName(layer_id)
                     if node and hasattr(node, "setOnionSkinVisible"):
@@ -108,14 +100,7 @@ def register_animation_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc:
                     if hasattr(doc, "setFramesPerSecond"):
                         doc.setFramesPerSecond(fps)
@@ -155,14 +140,7 @@ def register_animation_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc and output_dir and os.path.exists(output_dir):
                     files_written = []
                     for f_idx in range(start_frame, end_frame + 1):
@@ -170,7 +148,6 @@ def register_animation_handlers(dispatcher: Any) -> None:
                         doc.refreshProjection()
                         filename = f"{prefix}{f_idx:04d}.{img_format.lower()}"
                         out_path = os.path.join(output_dir, filename)
-                        # Save thumbnail/projection to out_path
                         qimg = doc.projection()
                         if qimg:
                             qimg.save(out_path, img_format)

@@ -4,6 +4,8 @@ import logging
 import uuid
 from typing import Any, Dict, List
 
+from plugins.krita_mcp_bridge.handlers_document import get_document_by_id
+
 logger = logging.getLogger(__name__)
 
 # Mock mask store for headless testing
@@ -24,7 +26,7 @@ def register_mask_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and layer_id:
                     parent_node = doc.nodeByName(layer_id)
                     if parent_node:
@@ -75,7 +77,7 @@ def register_mask_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and mask_id:
                     node = doc.nodeByName(mask_id)
                     if node:
@@ -101,7 +103,7 @@ def register_mask_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and layer_id:
                     node = doc.nodeByName(layer_id)
                     if node:
@@ -131,7 +133,7 @@ def register_mask_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and layer_id:
                     node = doc.nodeByName(layer_id)
                     if node:

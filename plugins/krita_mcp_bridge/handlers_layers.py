@@ -4,6 +4,8 @@ import logging
 import uuid
 from typing import Any, Dict, List, Optional
 
+from plugins.krita_mcp_bridge.handlers_document import get_document_by_id
+
 logger = logging.getLogger(__name__)
 
 # In-memory mock layer store for headless testing
@@ -36,7 +38,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     def _serialize_node(node: Any) -> dict:
                         children = [_serialize_node(child) for child in node.childNodes()]
@@ -73,7 +75,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc:
                     if layer_type == "group":
                         node = doc.createGroupLayer(name)
@@ -130,7 +132,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and layer_name:
                     node = doc.nodeByName(layer_name)
                     if node:
@@ -157,7 +159,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and target and reference:
                     target_node = doc.nodeByName(target)
                     ref_node = doc.nodeByName(reference)
@@ -184,7 +186,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and layer_name:
                     node = doc.nodeByName(layer_name)
                     if node:
@@ -223,7 +225,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = app.activeDocument()
+                doc = get_document_by_id(doc_id)
                 if doc and layer_name:
                     node = doc.nodeByName(layer_name)
                     if node:

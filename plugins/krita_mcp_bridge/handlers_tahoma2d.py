@@ -5,6 +5,8 @@ import logging
 import os
 from typing import Any, Dict, List
 
+from plugins.krita_mcp_bridge.handlers_document import get_document_by_id
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,14 +22,7 @@ def register_tahoma2d_handlers(dispatcher: Any) -> None:
             from krita import Krita
             app = Krita.instance()
             if app:
-                doc = None
-                for d in app.documents():
-                    if getattr(d, "_lazy_id", None) == doc_id or d.fileName() == doc_id:
-                        doc = d
-                        break
-                if not doc:
-                    doc = app.activeDocument()
-
+                doc = get_document_by_id(doc_id)
                 if doc:
                     root = doc.rootNode()
                     char_node = doc.nodeByName(char_group_name)
