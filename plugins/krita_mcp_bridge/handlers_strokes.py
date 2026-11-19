@@ -251,7 +251,19 @@ def register_stroke_handlers(dispatcher: Any) -> None:
             "bbox": bbox,
         }
 
+    def handle_live_tablet_stroke(params: dict) -> dict:
+        from plugins.krita_mcp_bridge.canvas_tablet_driver import CanvasTabletDriver
+        points = params.get("points", [])
+        preset = params.get("brush_preset", "f)_Ink-3_Gpen")
+        color = params.get("color", "#000000")
+        size = float(params.get("size", 4.0))
+
+        driver = CanvasTabletDriver()
+        return driver.execute_live_stroke(points=points, preset_name=preset, color_hex=color, size=size)
+
     dispatcher.register_handler("stroke.paint", handle_paint_stroke)
     dispatcher.register_handler("stroke.bezier_curve", handle_paint_stroke)
     dispatcher.register_handler("painting.stroke", handle_paint_stroke)
     dispatcher.register_handler("painting.bezier_curve", handle_paint_stroke)
+    dispatcher.register_handler("stroke.live_tablet_stroke", handle_live_tablet_stroke)
+    dispatcher.register_handler("stroke.tablet", handle_live_tablet_stroke)

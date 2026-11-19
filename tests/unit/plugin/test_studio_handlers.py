@@ -64,3 +64,19 @@ def test_layer_inject_svg_handler():
     assert resp.result.get("svg_injected") is True
     assert resp.result.get("layer_name") == "Vector_Lineart"
     assert resp.result.get("type") == "vectorLayer"
+
+def test_stroke_live_tablet_dispatch():
+    """Verify stroke.live_tablet_stroke handler dispatches through dispatcher."""
+    from plugins.krita_mcp_bridge.handlers_strokes import register_stroke_handlers
+    dispatcher = KritaMainThreadDispatcher()
+    register_stroke_handlers(dispatcher)
+
+    pts = [{"x": 10, "y": 10, "pressure": 0.2}, {"x": 50, "y": 50, "pressure": 0.9}]
+    resp = _run_job(
+        dispatcher,
+        "stroke.live_tablet_stroke",
+        {"points": pts, "brush_preset": "f)_Ink-3_Gpen", "color": "#111111", "size": 3.0},
+    )
+    assert resp.status == JobStatus.SUCCESS
+    assert resp.result.get("success") is True
+    assert resp.result.get("preset") == "f)_Ink-3_Gpen"
