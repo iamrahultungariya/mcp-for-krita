@@ -2,8 +2,11 @@
 
 import asyncio
 import logging
+import os
+import tempfile
 import threading
 import time
+import traceback
 from typing import Any, Optional
 
 from krita_mcp_lazy.core.errors import ErrorCode, KritaError
@@ -27,6 +30,15 @@ from plugins.krita_mcp_bridge.handlers_visual_qa import register_visual_qa_handl
 
 logger = logging.getLogger(__name__)
 
+_debug_log_path = os.path.join(tempfile.gettempdir(), "krita_mcp_bridge_debug.log")
+
+def _log_debug(msg: str) -> None:
+    try:
+        with open(_debug_log_path, "a", encoding="utf-8") as f:
+            f.write(f"[{time.strftime('%H:%M:%S')}] {msg}\n")
+    except Exception:
+        pass
+
 # Graceful fallback for headless environments without Krita runtime
 try:
     from krita import Extension
@@ -45,6 +57,9 @@ except ImportError:
 class BridgeExtension(Extension):
     """Krita Extension that registers with Krita's plugin manager and manages IPC bridge."""
 
+    _GLOBAL_SERVER_RUNNING = False
+    _GLOBAL_DISPATCHER: Optional[KritaMainThreadDispatcher] = None
+
     def __init__(
         self,
         parent: Any = None,
@@ -57,31 +72,41 @@ class BridgeExtension(Extension):
         self.host = host
         self.port = port
         self.token = token if token is not None else get_or_create_shared_token()
-        self.dispatcher = KritaMainThreadDispatcher(max_queue_size=max_queue_size)
+        if BridgeExtension._GLOBAL_DISPATCHER is None:
+            BridgeExtension._GLOBAL_DISPATCHER = KritaMainThreadDispatcher(max_queue_size=max_queue_size)
+        self.dispatcher = BridgeExtension._GLOBAL_DISPATCHER
         self.server: Optional[AsyncIPCServer] = None
         self._server_thread: Optional[threading.Thread] = None
         self._server_loop: Optional[asyncio.AbstractEventLoop] = None
         self._is_running = False
+        _log_debug(f"BridgeExtension initialized (host={self.host}, port={self.port})")
+
+    def __del__(self) -> None:
+        _log_debug(f"BridgeExtension.__del__ called on {self}!")
 
     def setup(self) -> None:
         """Called by Krita upon application startup to initialize plugin."""
-        self.dispatcher.attach_qtimer(interval_ms=16)
-        self._register_default_handlers()
-        register_document_handlers(self.dispatcher)
-        register_canvas_handlers(self.dispatcher)
-        register_layer_handlers(self.dispatcher)
-        register_mask_handlers(self.dispatcher)
-        register_semantic_handlers(self.dispatcher)
-        register_painting_handlers(self.dispatcher)
-        register_stroke_handlers(self.dispatcher)
-        register_character_handlers(self.dispatcher)
-        register_environment_handlers(self.dispatcher)
-        register_asset_handlers(self.dispatcher)
-        register_visual_qa_handlers(self.dispatcher)
-        register_animation_handlers(self.dispatcher)
-        register_tahoma2d_handlers(self.dispatcher)
-        self.start_ipc_bridge()
-        logger.info("krita-MCP-lazy BridgeExtension setup completed and IPC server launched")
+        _log_debug("BridgeExtension.setup() invoked")
+        try:
+            self.dispatcher.attach_qtimer(interval_ms=16)
+            self._register_default_handlers()
+            register_document_handlers(self.dispatcher)
+            register_canvas_handlers(self.dispatcher)
+            register_layer_handlers(self.dispatcher)
+            register_mask_handlers(self.dispatcher)
+            register_semantic_handlers(self.dispatcher)
+            register_painting_handlers(self.dispatcher)
+            register_stroke_handlers(self.dispatcher)
+            register_character_handlers(self.dispatcher)
+            register_environment_handlers(self.dispatcher)
+            register_asset_handlers(self.dispatcher)
+            register_visual_qa_handlers(self.dispatcher)
+            register_animation_handlers(self.dispatcher)
+            register_tahoma2d_handlers(self.dispatcher)
+            self.start_ipc_bridge()
+            _log_debug("BridgeExtension.setup() completed")
+        except Exception as e:
+            _log_debug(f"CRITICAL in BridgeExtension.setup(): {e}\n{traceback.format_exc()}")
 
     def createActions(self, window: Any) -> None:
         """Called by Krita when a main window is created."""
@@ -116,9 +141,12 @@ class BridgeExtension(Extension):
 
     def start_ipc_bridge(self) -> None:
         """Launch AsyncIPCServer on a dedicated background thread with its own asyncio loop."""
-        if self._is_running:
+        if BridgeExtension._GLOBAL_SERVER_RUNNING or self._is_running:
+            _log_debug("start_ipc_bridge: already running, skipping duplicate start")
             return
 
+        BridgeExtension._GLOBAL_SERVER_RUNNING = True
+        self._is_running = True
         started_event = threading.Event()
 
         def _run_server() -> None:
@@ -137,26 +165,40 @@ class BridgeExtension(Extension):
 
             async def _main_coro() -> None:
                 assert self.server is not None
-                await self.server.start()
-                started_event.set()
-                while self._is_running:
-                    await asyncio.sleep(0.05)
-                await self.server.stop()
+                try:
+                    await self.server.start()
+                    _log_debug(f"AsyncIPCServer listening on {self.host}:{self.port}")
+                    if self.server._server and self.server._server.sockets:
+                        for s in self.server._server.sockets:
+                            _log_debug(f"Socket bound: {s.getsockname()}")
+                    started_event.set()
+                    while self._is_running:
+                        await asyncio.sleep(0.05)
+                    _log_debug(f"_main_coro: loop finished, self._is_running={self._is_running}")
+                    await self.server.stop()
+                    _log_debug("server.stop() finished")
+                except Exception as exc:
+                    _log_debug(f"Exception during server execution: {exc}\n{traceback.format_exc()}")
+                    started_event.set()
 
             try:
                 self._server_loop.run_until_complete(_main_coro())
+            except Exception as exc:
+                _log_debug(f"Exception in _run_server event loop: {exc}\n{traceback.format_exc()}")
             finally:
+                _log_debug("_run_server finally block reached")
                 self._server_loop.close()
 
-        self._is_running = True
         self._server_thread = threading.Thread(target=_run_server, daemon=True, name="KritaIPCBridgeThread")
         self._server_thread.start()
-        started_event.wait(timeout=2.0)
-        logger.info("IPC Bridge thread launched on %s:%d", self.host, self.port)
+        started_event.wait(timeout=3.0)
+        _log_debug(f"IPC Bridge thread launched on {self.host}:{self.port}")
 
     def stop_ipc_bridge(self) -> None:
         """Stop background IPC bridge server thread."""
+        _log_debug(f"stop_ipc_bridge called on {self}")
         self._is_running = False
+        BridgeExtension._GLOBAL_SERVER_RUNNING = False
         if self._server_thread and self._server_thread.is_alive():
             self._server_thread.join(timeout=2.0)
             self._server_thread = None
