@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, Union
 
 from krita_mcp_lazy.core.errors import ErrorCode, KritaError
 from krita_mcp_lazy.core.schemas import JobRequest, JobResponse
+from krita_mcp_lazy.core.security import get_or_create_shared_token
 from krita_mcp_lazy.transport.protocol import (
     DEFAULT_MAX_PAYLOAD_SIZE,
     ProtocolError,
@@ -35,7 +36,7 @@ class AsyncIPCClient:
             )
         self.host = host
         self.port = port
-        self.token = token
+        self.token = token if token is not None else get_or_create_shared_token()
         self.timeout = timeout
         self.max_payload_size = max_payload_size
         self._reader: Optional[asyncio.StreamReader] = None

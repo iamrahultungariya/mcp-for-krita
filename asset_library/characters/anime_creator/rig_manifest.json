@@ -1,0 +1,51 @@
+{
+  "character_id": "anime_creator",
+  "name": "Anime Creator",
+  "style": "rg_bucket_list",
+  "pivots": {
+    "neck": [
+      382.5,
+      491.5
+    ],
+    "shoulder_l": [
+      244.8,
+      532.5
+    ],
+    "shoulder_r": [
+      520.2,
+      532.5
+    ]
+  },
+  "expressions": [
+    "normal",
+    "blink",
+    "shocked",
+    "smile"
+  ],
+  "visemes": [
+    "rest",
+    "A",
+    "E",
+    "O",
+    "smirk"
+  ],
+  "palette": {
+    "color_00": "#844c47",
+    "color_01": "#fbfdfe",
+    "color_02": "#5d3434",
+    "color_03": "#ecab81",
+    "color_04": "#4590a8",
+    "color_05": "#f8b43f",
+    "color_06": "#32323f",
+    "color_07": "#0f090d",
+    "color_08": "#291b26",
+    "color_09": "#d7773d"
+  },
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 765.0,
+    "height": 1024.0
+  },
+  "version": "1.0.0"
+}
