@@ -6,6 +6,7 @@ from krita_mcp_lazy.core.config import KritaConfig
 from krita_mcp_lazy.server.tools_animation import register_animation_tools
 from krita_mcp_lazy.server.tools_art_planning import register_art_planning_tools
 from krita_mcp_lazy.server.tools_assets import register_assets_tools
+from krita_mcp_lazy.server.tools_autonomous_painter import register_autonomous_painter_tools
 from krita_mcp_lazy.server.tools_character import register_character_tools
 from krita_mcp_lazy.server.tools_document import register_document_tools
 from krita_mcp_lazy.server.tools_environment import register_environment_tools
@@ -39,6 +40,8 @@ def create_mcp_server(config: Optional[KritaConfig] = None) -> Any:
     register_layer_tools(server, cfg)
     # Register Painting Tools
     register_painting_tools(server, cfg)
+    # Register Autonomous Painting Engine
+    register_autonomous_painter_tools(server, cfg)
     # Register Art Planning Tools
     register_art_planning_tools(server, cfg)
     # Register Character Production Tools
