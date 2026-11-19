@@ -23,6 +23,7 @@ def _get_doc_layers(doc_id: str) -> List[dict]:
                 "blending_mode": "normal",
                 "visible": True,
                 "locked": False,
+                "inherit_alpha": False,
                 "children": [],
             }
         ]
@@ -42,6 +43,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
                 if doc:
                     def _serialize_node(node: Any) -> dict:
                         children = [_serialize_node(child) for child in node.childNodes()]
+                        inherit_a = getattr(node, "inheritAlpha", lambda: False)()
                         return {
                             "id": node.name(),
                             "name": node.name(),
@@ -50,6 +52,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
                             "blending_mode": node.blendingMode(),
                             "visible": node.visible(),
                             "locked": node.locked(),
+                            "inherit_alpha": inherit_a,
                             "children": children,
                         }
                     root = doc.rootNode()
@@ -113,6 +116,7 @@ def register_layer_handlers(dispatcher: Any) -> None:
             "blending_mode": blending_mode,
             "visible": visible,
             "locked": locked,
+            "inherit_alpha": False,
             "children": [],
         }
 
@@ -272,6 +276,103 @@ def register_layer_handlers(dispatcher: Any) -> None:
 
         return {"doc_id": doc_id, "layer_id": layer_id, "mode": "headless_mock", "success": True}
 
+    def handle_set_inherit_alpha(params: dict) -> dict:
+        doc_id = params.get("doc_id", "default")
+        layer_name = params.get("layer_name") or params.get("layer_id")
+        inherit_alpha = bool(params.get("inherit_alpha", True))
+
+        try:
+            from krita import Krita
+            app = Krita.instance()
+            if app:
+                doc = get_document_by_id(doc_id)
+                if doc and layer_name:
+                    node = doc.nodeByName(layer_name)
+                    if node and hasattr(node, "setInheritAlpha"):
+                        node.setInheritAlpha(inherit_alpha)
+                        return {
+                            "doc_id": doc_id,
+                            "layer_name": layer_name,
+                            "inherit_alpha": inherit_alpha,
+                            "updated": True,
+                            "mode": "live_krita",
+                        }
+        except Exception as exc:
+            logger.warning("Failed to set inherit alpha in Krita: %s", exc)
+
+        # Headless mock mode
+        layers = _get_doc_layers(doc_id)
+        def _update_alpha(tree):
+            for l in tree:
+                if l["name"] == layer_name or l["id"] == layer_name:
+                    l["inherit_alpha"] = inherit_alpha
+                    return True
+                if l.get("children") and _update_alpha(l["children"]):
+                    return True
+            return False
+
+        updated = _update_alpha(layers)
+        return {
+            "doc_id": doc_id,
+            "layer_name": layer_name,
+            "inherit_alpha": inherit_alpha,
+            "updated": updated,
+            "mode": "headless_mock",
+        }
+
+    def handle_inject_svg(params: dict) -> dict:
+        doc_id = params.get("doc_id", "default")
+        layer_name = params.get("layer_name", "Vector_Layer")
+        svg_string = params.get("svg_string", "")
+        parent_group = params.get("parent_group") or params.get("parent_id")
+
+        try:
+            from krita import Krita
+            app = Krita.instance()
+            if app:
+                doc = get_document_by_id(doc_id)
+                if doc:
+                    node = doc.nodeByName(layer_name)
+                    if not node or node.type() != "vectorlayer":
+                        node = doc.createVectorLayer(layer_name)
+                        parent_node = doc.nodeByName(parent_group) if parent_group else doc.rootNode()
+                        parent_node.addChildNode(node, None)
+                    if hasattr(node, "addShapesFromSvg"):
+                        node.addShapesFromSvg(svg_string)
+                    doc.refreshProjection()
+                    return {
+                        "doc_id": doc_id,
+                        "layer_name": layer_name,
+                        "type": "vectorLayer",
+                        "svg_injected": True,
+                        "mode": "live_krita",
+                    }
+        except Exception as exc:
+            logger.warning("Failed to inject SVG shapes in Krita: %s", exc)
+
+        # Headless mock mode
+        layers = _get_doc_layers(doc_id)
+        new_vector_node = {
+            "id": f"lyr_{uuid.uuid4().hex[:6]}",
+            "name": layer_name,
+            "type": "vectorLayer",
+            "opacity": 255,
+            "blending_mode": "normal",
+            "visible": True,
+            "locked": False,
+            "inherit_alpha": False,
+            "svg_data": svg_string,
+            "children": [],
+        }
+        layers.append(new_vector_node)
+        return {
+            "doc_id": doc_id,
+            "layer_name": layer_name,
+            "type": "vectorLayer",
+            "svg_injected": True,
+            "mode": "headless_mock",
+        }
+
     dispatcher.register_handler("layer.tree", handle_layer_tree)
     dispatcher.register_handler("layer.create", handle_create_layer)
     dispatcher.register_handler("layer.delete", handle_delete_layer)
@@ -279,3 +380,5 @@ def register_layer_handlers(dispatcher: Any) -> None:
     dispatcher.register_handler("layer.set_properties", handle_set_properties)
     dispatcher.register_handler("layer.set_active", handle_set_active)
     dispatcher.register_handler("layer.set_pixel_tile", handle_set_pixel_tile)
+    dispatcher.register_handler("layer.set_inherit_alpha", handle_set_inherit_alpha)
+    dispatcher.register_handler("layer.inject_svg", handle_inject_svg)
